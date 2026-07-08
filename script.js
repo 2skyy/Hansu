@@ -1,12 +1,14 @@
-const menuButton = document.getElementById('menuButton');
-const nav = document.getElementById('nav');
+const navToggle = document.querySelector('.nav-toggle');
+const siteNav = document.querySelector('.site-nav');
 
-menuButton.addEventListener('click', () => {
-  nav.classList.toggle('open');
+navToggle?.addEventListener('click', () => {
+  const isOpen = siteNav.classList.toggle('open');
+  navToggle.setAttribute('aria-expanded', String(isOpen));
 });
 
-nav.querySelectorAll('a').forEach((link) => {
+document.querySelectorAll('.site-nav a').forEach((link) => {
   link.addEventListener('click', () => {
-    nav.classList.remove('open');
+    siteNav.classList.remove('open');
+    navToggle?.setAttribute('aria-expanded', 'false');
   });
 });
