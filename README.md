@@ -8,6 +8,35 @@
 - `index.html`의 인스타그램 링크: `https://www.instagram.com/kimennu`
 - `index.html`의 문의 이메일: `earthof@naver.com`
 
+## 로컬에서 실행
+
+```bash
+./serve.sh          # http://localhost:8811
+./serve.sh 3000     # 포트 지정
+```
+
+브라우저에서 `index.html`을 파일로 직접 열어도(`open index.html`) 지금은 동작하지만,
+나중에 실데이터를 `fetch`로 불러오기 시작하면 CORS에 막혀 깨집니다.
+처음부터 서버로 보는 편이 안전합니다.
+
+### ⚠️ 위치 기능은 https 또는 localhost에서만 됩니다
+
+스탬프 인증은 브라우저 보안 정책상 **보안 컨텍스트**에서만 동작합니다.
+
+| 접속 방법 | 위치 기능 |
+|---|---|
+| `http://localhost:8811` | ✅ 됨 (localhost는 예외 허용) |
+| `http://192.168.x.x:8811` (같은 와이파이의 휴대폰) | ❌ 차단됨 |
+| `https://...` (배포 후) | ✅ 됨 |
+
+휴대폰에서 인증을 테스트하려면 https 터널이 필요합니다.
+
+```bash
+brew install cloudflared
+cloudflared tunnel --url http://localhost:8811
+# 출력되는 https://....trycloudflare.com 주소를 휴대폰에서 열면 됩니다
+```
+
 ## GitHub Pages 배포
 
 1. GitHub 저장소에 `index.html`, `style.css`, `script.js`, `data.js`, `README.md` 업로드
