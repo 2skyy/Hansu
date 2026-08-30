@@ -907,3 +907,51 @@ document.querySelectorAll('.site-nav a').forEach((link) => {
     play();
   }
 })();
+
+/* =====================================================================
+   어린이 배움 (#kids)
+   문구는 전부 data.js 의 education 에 있습니다. 여기는 그리기만 합니다.
+   ===================================================================== */
+(function () {
+  const D = window.HANSU_DATA;
+  const kids = document.getElementById('kids');
+  if (!D || !D.education || !kids) return;
+  const E = D.education;
+  const nf = (n) => Number(n).toLocaleString('ko-KR');
+
+  const steps = document.getElementById('kidsSteps');
+  if (steps && E.steps) {
+    steps.innerHTML = E.steps
+      .map(
+        (s) =>
+          `<li><span class="step-no" aria-hidden="true">${s.no}</span>` +
+          `<h3>${s.title}</h3><p>${s.desc}</p></li>`
+      )
+      .join('');
+  }
+
+  // details/summary 를 쓰면 열고 닫기와 키보드 조작이 브라우저 기본으로 해결된다
+  const qna = document.getElementById('kidsQna');
+  if (qna && E.qna) {
+    qna.innerHTML = E.qna
+      .map(
+        (x) =>
+          `<details class="qna-item"><summary class="qna-q">` +
+          `<span class="q-mark" aria-hidden="true">?</span>${x.q}` +
+          `<span class="q-caret" aria-hidden="true">▾</span></summary>` +
+          `<p class="qna-a">${x.a}</p></details>`
+      )
+      .join('');
+  }
+
+  const stats = document.getElementById('kidsStats');
+  if (stats && E.stats) {
+    stats.innerHTML = E.stats
+      .map(
+        (s) =>
+          `<div class="kids-stat"><strong>${nf(s.value)}<em>${s.unit}</em></strong>` +
+          `<span>${s.label}</span></div>`
+      )
+      .join('');
+  }
+})();

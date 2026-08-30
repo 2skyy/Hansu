@@ -449,3 +449,278 @@ h1,h2,h3,p{letter-spacing:-.035em}h1{margin:0;color:var(--navy);font-size:clamp(
   display:block;height:100%;border-radius:999px;
   background:linear-gradient(90deg,#7ee8c6,#8fd0ff);transition:width .5s ease
 }
+
+/* =====================================================================
+   한지 · 단청 테마
+   ---------------------------------------------------------------------
+   바탕은 한지와 먹으로 차분하게, 포인트에만 단청의 주칠·청록을 쓴다.
+
+   대비 검증 완료 (한지 #f4ecdc 기준)
+     먹 #2c2318 13.1:1 · 보조 #6b5b45 5.6:1 · 주칠 #a8382e 5.5:1
+     단청청 #1d5b7a 6.3:1 · 단청녹 #2e6b4f 5.4:1
+   ⚠️ 황 #a8792a 는 3.3:1 로 본문에 쓸 수 없다. 장식·채움에만 쓸 것.
+   ===================================================================== */
+:root{
+  --hanji:#f4ecdc;
+  --hanji-card:#faf5e9;
+  --hanji-deep:#e8dcc4;
+  --jucheol:#a8382e;
+  --jucheol-dark:#8d2c24;
+  --cheong:#1d5b7a;
+  --nok:#2e6b4f;
+  --hwang:#a8792a;
+  --deep:#241c12;
+  --deep-2:#332818;
+
+  /* 기존 토큰을 한지 계열로 재정의 — 모든 컴포넌트가 자동으로 따라온다 */
+  --navy:#2c2318;
+  --ink:#2c2318;
+  --muted:#6b5b45;
+  --line:#ddd0b4;
+  --blue:var(--jucheol);
+  --purple:var(--cheong);
+  --mint:var(--nok);
+  --white:var(--hanji-card);
+  --sky:#eae0ca;
+  --lavender:#f0e6d2;
+  --shadow:0 18px 54px rgba(60,44,24,.14);
+  --radius:20px;
+
+  --serif:'Nanum Myeongjo',serif;
+}
+
+body{
+  background:
+    radial-gradient(circle at 12% 8%,rgba(168,56,46,.05),transparent 32%),
+    radial-gradient(circle at 88% 4%,rgba(29,91,122,.05),transparent 30%),
+    linear-gradient(180deg,#f6efe1 0%,var(--hanji) 45%,#efe6d3 100%);
+  color:var(--ink)
+}
+
+h1,h2,h3,.brand-text,.stat-value,.summary-card h2{font-family:var(--serif);letter-spacing:-.02em}
+h1{font-weight:800}
+h1 span{background:none;-webkit-background-clip:initial;background-clip:initial;color:var(--jucheol)}
+.eyebrow,.section-label{color:var(--jucheol);letter-spacing:.14em;font-size:13px}
+
+/* --- 헤더 --- */
+.site-header{
+  background:rgba(246,239,225,.86);
+  border-bottom:1px solid var(--line)
+}
+.brand-mark{
+  background:var(--jucheol);border-radius:8px;font-family:var(--serif);
+  box-shadow:0 6px 18px rgba(168,56,46,.26)
+}
+.brand-text{font-weight:800}
+.site-nav{color:var(--ink)}
+.site-nav a:hover{color:var(--jucheol)}
+.nav-cta{
+  background:var(--jucheol);color:var(--hanji-card);border-color:var(--jucheol);
+  box-shadow:0 8px 22px rgba(168,56,46,.24)
+}
+.nav-cta:hover{color:#fff}
+.nav-toggle span{background:var(--ink)}
+
+/* --- 히어로 --- */
+.hero{
+  background:
+    radial-gradient(circle at 16% 22%,rgba(46,107,79,.09),transparent 30%),
+    radial-gradient(circle at 86% 14%,rgba(168,56,46,.08),transparent 28%),
+    linear-gradient(160deg,#f8f2e4 0%,var(--hanji) 52%,#ece2cd 100%)
+}
+/* 떠 있는 원형 blob은 SaaS 인상이 강해 먹 번짐처럼 낮춘다 */
+.orb{filter:blur(30px);opacity:.5}
+.orb-one{background:radial-gradient(circle,rgba(46,107,79,.3),transparent 68%)}
+.orb-two{background:radial-gradient(circle,rgba(168,56,46,.26),transparent 68%)}
+.glass{
+  background:rgba(250,245,233,.9);border:1px solid var(--line);
+  backdrop-filter:blur(10px);box-shadow:var(--shadow)
+}
+.summary-card{border-radius:22px}
+.card-topline{color:var(--jucheol);letter-spacing:.14em}
+.mini-grid div{background:var(--hanji);border:1px solid var(--line);border-radius:12px}
+.mini-grid strong{color:var(--jucheol);font-family:var(--serif)}
+
+/* --- 버튼 --- */
+.button{border-radius:6px;font-weight:700}
+.button.primary{
+  background:var(--jucheol);color:var(--hanji-card);
+  box-shadow:0 10px 26px rgba(168,56,46,.26)
+}
+.button.primary:hover{background:var(--jucheol-dark);box-shadow:0 14px 32px rgba(168,56,46,.34)}
+.button.ghost{
+  background:var(--hanji-card);color:var(--ink);border:1px solid var(--line);
+  box-shadow:0 8px 20px rgba(60,44,24,.07)
+}
+
+/* --- 일반 카드/섹션 --- */
+.soft{background:linear-gradient(180deg,var(--hanji),#f0e7d5)}
+.lead-box,.card,.value-list article{background:var(--hanji-card);border-color:var(--line)}
+.lead-box,.card{box-shadow:0 12px 34px rgba(60,44,24,.07);border-radius:var(--radius)}
+.card:hover{box-shadow:0 18px 46px rgba(168,56,46,.13)}
+.icon{
+  background:var(--hanji);color:var(--jucheol);border:1px solid var(--line);
+  border-radius:10px;font-family:var(--serif)
+}
+.value-list{background:var(--line);border-color:var(--line);border-radius:var(--radius)}
+
+/* --- 러닝 섹션: 남색 그라디언트 → 먹빛 --- */
+.gradient{
+  background:
+    radial-gradient(circle at 78% 18%,rgba(168,56,46,.3),transparent 46%),
+    linear-gradient(140deg,var(--deep) 0%,var(--deep-2) 58%,#3b2f1c 100%);
+  color:var(--hanji-card)
+}
+.section-head.light .section-label{color:#e0b876}
+.section-head.light h2{color:var(--hanji-card);font-family:var(--serif)}
+.route-card{
+  background:rgba(244,236,220,.09);border:1px solid rgba(244,236,220,.2);
+  border-radius:var(--radius)
+}
+.route-card h3{font-family:var(--serif);color:var(--hanji-card)}
+.route-card li{background:rgba(244,236,220,.08);border-radius:12px}
+.route-card span{background:var(--hanji-card);color:var(--jucheol)}
+
+/* --- 누적 기록 섹션 --- */
+.record{background:linear-gradient(180deg,#f0e7d5 0%,var(--hanji) 38%,#efe6d3 100%)}
+.map-panel,.chart-figure{background:var(--hanji-card);border-color:var(--line);border-radius:22px}
+.stat-tile{background:var(--hanji-card);border-color:var(--line);border-radius:var(--radius)}
+.stat-tile.accent{
+  background:linear-gradient(140deg,var(--jucheol),var(--jucheol-dark));
+  box-shadow:0 16px 40px rgba(168,56,46,.26)
+}
+.stat-value em{color:var(--muted)}
+.legend-chip{background:var(--hanji-card);border-color:var(--line);border-radius:6px}
+.scale-card{
+  background:var(--hanji-card);border-color:var(--line);border-radius:var(--radius)
+}
+.scale-card strong{font-family:var(--serif)}
+.map-table .bar{background:var(--hanji-deep)}
+.recent-strip li{background:var(--hanji-card);border-color:var(--line);border-radius:6px}
+.map-tip,.chart-tip{background:rgba(36,28,18,.95)}
+.map-tip .tip-km,.chart-tip i{color:#e0b876}
+
+/* 차트: 파랑 → 단청청 (성곽 3색과 겹치지 않는 색) */
+.chart-area{fill:rgba(29,91,122,.13)}
+.chart-line{stroke:var(--cheong)}
+.chart-dots circle{fill:var(--hanji-card);stroke:var(--cheong)}
+.chart-cross{stroke:var(--ink)}
+.chart-data summary{color:var(--jucheol)}
+.record-meta .sample-badge{background:#f6e6c8;color:#7d5410;border-color:#e0c48a}
+
+/* --- 스탬프 투어: 남색 → 먹빛, 민트/하늘 → 금색 --- */
+.checkin-panel{
+  background:
+    radial-gradient(circle at 82% 12%,rgba(168,56,46,.26),transparent 48%),
+    linear-gradient(140deg,var(--deep),var(--deep-2) 62%,#3b2f1c);
+  border-radius:22px;box-shadow:0 20px 60px rgba(36,28,18,.28)
+}
+.checkin-head h3,.story-panel h4{font-family:var(--serif);color:var(--hanji-card)}
+.checkin-btn{
+  background:linear-gradient(135deg,#e0b876,#c9954a);color:var(--deep);border-radius:6px;
+  box-shadow:0 12px 30px rgba(224,184,118,.26)
+}
+.checkin-btn:hover:not(:disabled){box-shadow:0 16px 38px rgba(224,184,118,.36)}
+.checkin-status.ok{color:#e0b876}
+.course-tab{border-radius:6px}
+.course-tab[aria-selected="true"]{
+  background:linear-gradient(135deg,#e0b876,#c9954a);color:var(--deep);
+  box-shadow:0 8px 22px rgba(224,184,118,.26)
+}
+.course-info{border-radius:14px}
+.course-info .ci-route{font-family:var(--serif)}
+.course-info .ci-meta span{background:rgba(224,184,118,.14);color:#e8c98a;border-color:rgba(224,184,118,.24)}
+.course-info .ci-meta .ci-level{background:rgba(168,56,46,.24);color:#f0b0a6;border-color:rgba(240,176,166,.3)}
+.stamp{border-radius:14px}
+.stamp.done{
+  background:linear-gradient(135deg,rgba(224,184,118,.2),rgba(201,149,74,.1));
+  border-color:rgba(224,184,118,.6)
+}
+.stamp.done .stamp-mark{background:#e0b876;border-color:#e0b876;color:var(--deep);box-shadow:0 0 20px rgba(224,184,118,.5)}
+.stamp.done .stamp-lock,.story-panel .sp-course{color:#e0b876}
+.stamp .stamp-dist{color:#e8c98a}
+.stamp[aria-expanded="true"]{border-color:#e0b876;background:rgba(224,184,118,.14)}
+.story-panel{
+  border-radius:16px;
+  background:linear-gradient(135deg,rgba(224,184,118,.13),rgba(168,56,46,.08));
+  border-color:rgba(224,184,118,.3)
+}
+.checkin-progress .cp-bar i{background:linear-gradient(90deg,#e0b876,#c9954a)}
+.checkin-note code{color:#e8c98a}
+
+/* --- 푸터 --- */
+.site-footer{background:var(--hanji-card);border-top:1px solid var(--line)}
+.footer-inner a{color:var(--jucheol)}
+/* 지도 위 글자도 명조로 — 옛 지도의 붓글씨 인상에 가깝다 */
+.hs-cartouche-text,.hs-peak-label,.hs-water-label{font-family:var(--serif)}
+.hs-wall-label .wl-name{font-family:var(--serif)}
+/* 원본에 하드코딩돼 있던 회청색 계열 본문 색을 한지에 맞는 먹 계열로 */
+.hero-desc{color:var(--muted)}
+.hero-desc b{color:var(--ink)}
+.lead-box p{color:#5a4c38}
+.site-nav{color:#4a3f2e}
+.map-table tbody td,.chart-data th,.chart-data td,.recent-strip li{color:#5a4c38}
+
+/* =====================================================================
+   어린이 배움 (#kids)
+   ===================================================================== */
+.kids{background:linear-gradient(180deg,var(--hanji) 0%,#f7f1e2 45%,var(--hanji) 100%)}
+
+.kids-steps{list-style:none;counter-reset:none;padding:0;margin:0;display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+.kids-steps li{
+  position:relative;padding:34px 30px 30px;border-radius:var(--radius);
+  background:var(--hanji-card);border:1px solid var(--line);box-shadow:0 12px 34px rgba(60,44,24,.07)
+}
+.kids-steps .step-no{
+  position:absolute;top:-16px;left:26px;display:inline-grid;place-items:center;
+  width:44px;height:44px;border-radius:50%;background:var(--jucheol);color:var(--hanji-card);
+  font-family:var(--serif);font-size:17px;font-weight:700;
+  box-shadow:0 8px 22px rgba(168,56,46,.28)
+}
+.kids-steps h3{margin:12px 0 10px;font-size:21px;color:var(--ink)}
+.kids-steps p{margin:0;color:var(--muted);font-size:15.5px;line-height:1.85}
+
+.kids-qna{margin-top:56px}
+.kids-qna h3{margin:0 0 22px;font-family:var(--serif);font-size:26px;color:var(--ink);text-align:center}
+.qna-list{display:grid;gap:12px;max-width:820px;margin:0 auto}
+.qna-item{border:1px solid var(--line);border-radius:14px;background:var(--hanji-card);overflow:hidden}
+.qna-q{
+  width:100%;display:flex;align-items:center;gap:14px;padding:20px 22px;cursor:pointer;
+  font-family:var(--serif);font-size:18px;font-weight:700;color:var(--ink);
+  background:transparent;border:0;text-align:left
+}
+.qna-q .q-mark{
+  flex:0 0 auto;display:inline-grid;place-items:center;width:30px;height:30px;border-radius:50%;
+  background:var(--jucheol);color:var(--hanji-card);font-size:15px;font-weight:700
+}
+.qna-q .q-caret{margin-left:auto;color:var(--jucheol);font-size:15px;transition:transform .22s ease}
+.qna-item[open] .q-caret{transform:rotate(180deg)}
+.qna-q:hover{background:rgba(168,56,46,.05)}
+.qna-q:focus-visible{outline:3px solid var(--jucheol);outline-offset:-3px}
+.qna-a{padding:0 22px 22px 66px;margin:0;color:var(--muted);font-size:16px;line-height:1.95}
+
+.kids-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-top:56px}
+.kids-stat{
+  padding:26px 22px;border-radius:var(--radius);text-align:center;
+  background:var(--hanji-card);border:1px solid var(--line)
+}
+.kids-stat strong{
+  display:block;font-family:var(--serif);font-size:36px;font-weight:800;color:var(--jucheol);
+  line-height:1.1;font-variant-numeric:tabular-nums
+}
+.kids-stat strong em{font-style:normal;font-size:.5em;margin-left:3px}
+.kids-stat span{display:block;margin-top:8px;font-size:14px;color:var(--muted)}
+.kids-note{margin:18px 0 0;text-align:center;font-size:13px;color:#8a7a63}
+
+@media (max-width:880px){
+  .kids-steps,.kids-stats{grid-template-columns:1fr}
+  .kids-steps li{padding-top:38px}
+  .qna-a{padding-left:22px}
+}
+@media (max-width:520px){
+  .kids-stats{grid-template-columns:repeat(2,1fr)}
+}
+/* summary 기본 삼각형 마커 제거 */
+.qna-q{list-style:none}
+.qna-q::-webkit-details-marker{display:none}
+.qna-q::marker{content:''}
