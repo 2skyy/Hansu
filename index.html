@@ -28,6 +28,7 @@
       <a href="#about">소개</a>
       <a href="#learn">방문교육</a>
       <a href="#run">러닝</a>
+      <a href="#record">누적 기록</a>
       <a href="#value">유산 가치</a>
       <a class="nav-cta" href="#apply">신청 및 문의</a>
     </nav>
@@ -132,6 +133,218 @@
       </div>
     </section>
 
+    <section class="section-pad record" id="record">
+      <div class="container">
+        <div class="section-head center">
+          <p class="section-label">CUMULATIVE RECORD</p>
+          <h2>우리가 함께 달린 성곽</h2>
+          <p>
+            한수런런 참가자들이 남긴 기록을 모았습니다.
+            옛 지도 위의 성곽선이 차오를수록, 그만큼 더 많은 사람이 이 길을 달렸다는 뜻입니다.
+          </p>
+        </div>
+
+        <div class="stat-row">
+          <article class="stat-tile">
+            <p class="stat-label">누적 참여자</p>
+            <p class="stat-value"><span data-count="runners">0</span><em>명</em></p>
+            <p class="stat-sub">중복 제외 순 인원</p>
+          </article>
+          <article class="stat-tile accent">
+            <p class="stat-label">누적 거리</p>
+            <p class="stat-value"><span data-count="km">0</span><em>km</em></p>
+            <p class="stat-sub">세 성곽 구간 합계</p>
+          </article>
+          <article class="stat-tile">
+            <p class="stat-label">누적 완주</p>
+            <p class="stat-value"><span data-count="laps">0</span><em>회</em></p>
+            <p class="stat-sub">성곽 한 바퀴 환산</p>
+          </article>
+        </div>
+
+        <div class="map-panel">
+          <div class="map-head">
+            <div>
+              <h3>성곽별 누적 현황</h3>
+              <p>구간을 선택하면 해당 성곽만 강조됩니다.</p>
+            </div>
+            <div class="map-legend" role="group" aria-label="성곽 구간 선택"></div>
+          </div>
+
+          <div class="map-stage">
+            <svg class="map-svg" viewBox="0 0 1000 700" role="img" aria-labelledby="mapTitle mapDesc">
+              <title id="mapTitle">한수런런 누적 러닝 지도</title>
+              <desc id="mapDesc">
+                북한산성·탕춘대성·한양도성 세 성곽의 누적 러닝 달성률을 옛 회화식 지도 형식으로 표현한 그림입니다.
+                각 성곽의 정확한 수치는 아래 표에 정리되어 있습니다.
+              </desc>
+
+              <defs>
+                <filter id="hs-grain" x="0" y="0" width="100%" height="100%">
+                  <feTurbulence type="fractalNoise" baseFrequency="0.85" numOctaves="4" seed="7" result="n" />
+                  <feColorMatrix in="n" type="saturate" values="0" />
+                  <feComponentTransfer><feFuncA type="linear" slope="0.09" /></feComponentTransfer>
+                </filter>
+                <linearGradient id="hs-peak" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stop-color="#4a4034" stop-opacity=".82" />
+                  <stop offset="55%" stop-color="#6f6455" stop-opacity=".30" />
+                  <stop offset="100%" stop-color="#8c7f6a" stop-opacity="0" />
+                </linearGradient>
+                <linearGradient id="hs-water" x1="0" y1="0" x2="1" y2="0">
+                  <stop offset="0%" stop-color="#8aa9b8" stop-opacity=".55" />
+                  <stop offset="100%" stop-color="#8aa9b8" stop-opacity=".28" />
+                </linearGradient>
+                <!-- 네온 발광: 넓은 블러를 두 번 겹쳐 빛 번짐을 만든다 -->
+                <filter id="hs-neon" x="-30%" y="-30%" width="160%" height="160%">
+                  <feGaussianBlur stdDeviation="8" result="b" />
+                  <feMerge><feMergeNode in="b" /><feMergeNode in="b" /></feMerge>
+                </filter>
+                <filter id="hs-dotglow" x="-160%" y="-160%" width="420%" height="420%">
+                  <feGaussianBlur stdDeviation="3.4" />
+                </filter>
+                <radialGradient id="hs-vignette" cx="50%" cy="46%" r="78%">
+                  <stop offset="62%" stop-color="#2a1d0c" stop-opacity="0" />
+                  <stop offset="100%" stop-color="#2a1d0c" stop-opacity=".19" />
+                </radialGradient>
+              </defs>
+
+              <rect class="hs-paper" x="0" y="0" width="1000" height="700" />
+              <rect x="0" y="0" width="1000" height="700" filter="url(#hs-grain)" opacity=".55" />
+
+              <rect class="hs-frame-outer" x="14" y="14" width="972" height="672" />
+              <rect class="hs-frame-inner" x="22" y="22" width="956" height="656" />
+
+              <g class="hs-terrain" id="hsTerrain" aria-hidden="true"></g>
+
+              <g class="hs-waters" aria-hidden="true">
+                <path class="hs-river major" d="M 24 636 C 190 618, 320 656, 480 664 C 640 672, 820 634, 976 602" />
+                <path class="hs-river" d="M 404 514 C 456 528, 522 532, 582 524 C 622 519, 652 532, 676 552 C 694 566, 702 588, 706 606" />
+                <path class="hs-river" d="M 742 296 C 750 380, 742 462, 728 542 C 720 588, 714 616, 710 646" />
+                <path class="hs-river" d="M 302 252 C 278 302, 250 352, 216 398 C 188 438, 156 472, 122 502" />
+                <path class="hs-river" d="M 560 214 C 596 246, 634 274, 676 292" />
+              </g>
+
+              <g class="hs-city" id="hsCity" aria-hidden="true"></g>
+
+              <rect class="hs-vignette" x="0" y="0" width="1000" height="700" fill="url(#hs-vignette)" aria-hidden="true" />
+
+              <g class="hs-walls" id="hsWalls">
+                <g class="hs-wall" data-wall="bukhan">
+                  <path class="hs-wall-base" d="M 332 262 C 336 232, 352 200, 378 176 C 402 154, 430 138, 458 132 C 486 126, 512 134, 532 152 C 552 170, 562 194, 560 218 C 558 242, 544 262, 522 274 C 496 288, 464 292, 432 288 C 398 284, 366 276, 348 270 C 340 268, 334 266, 332 262 Z" />
+                  <path class="hs-wall-fill" d="M 332 262 C 336 232, 352 200, 378 176 C 402 154, 430 138, 458 132 C 486 126, 512 134, 532 152 C 552 170, 562 194, 560 218 C 558 242, 544 262, 522 274 C 496 288, 464 292, 432 288 C 398 284, 366 276, 348 270 C 340 268, 334 266, 332 262 Z" />
+                </g>
+                <g class="hs-wall" data-wall="tangchun">
+                  <path class="hs-wall-base" d="M 386 452 C 372 418, 360 386, 352 352 C 345 322, 338 292, 332 264" />
+                  <path class="hs-wall-fill" d="M 386 452 C 372 418, 360 386, 352 352 C 345 322, 338 292, 332 264" />
+                </g>
+                <g class="hs-wall" data-wall="hanyang">
+                  <path class="hs-wall-base" d="M 500 421 C 548 424, 598 442, 628 472 C 652 494, 656 514, 646 530 C 634 548, 616 564, 592 574 C 560 587, 528 591, 500 589 C 470 587, 442 577, 420 561 C 398 544, 383 520, 380 496 C 376 470, 384 448, 400 435 C 426 422, 466 418, 500 421 Z" />
+                  <path class="hs-wall-fill" d="M 500 421 C 548 424, 598 442, 628 472 C 652 494, 656 514, 646 530 C 634 548, 616 564, 592 574 C 560 587, 528 591, 500 589 C 470 587, 442 577, 420 561 C 398 544, 383 520, 380 496 C 376 470, 384 448, 400 435 C 426 422, 466 418, 500 421 Z" />
+                </g>
+              </g>
+
+              <g class="hs-runners" id="hsRunners" aria-hidden="true"></g>
+
+              <g class="hs-gates" aria-hidden="true">
+                <g class="hs-gate" transform="translate(500 421)"><circle r="5" /><text y="-12">숙정문</text></g>
+                <g class="hs-gate" transform="translate(651 505)"><circle r="5" /><text x="14" y="4" text-anchor="start">흥인지문</text></g>
+                <g class="hs-gate" transform="translate(446 568)"><circle r="5" /><text y="19">숭례문</text></g>
+                <g class="hs-gate" transform="translate(381 489)"><circle r="5" /><text x="-14" y="4" text-anchor="end">돈의문</text></g>
+              </g>
+
+              <g class="hs-labels" aria-hidden="true">
+                <text class="hs-peak-label" x="462" y="118">북한산</text>
+                <text class="hs-peak-label" x="396" y="344">탕춘대</text>
+                <text class="hs-peak-label" x="446" y="400">백악산</text>
+                <text class="hs-peak-label" x="344" y="450">인왕산</text>
+                <text class="hs-peak-label" x="648" y="466">낙산</text>
+                <text class="hs-peak-label" x="506" y="606">남산</text>
+                <text class="hs-water-label" x="248" y="626">한강</text>
+              </g>
+
+              <g class="hs-cartouche" aria-hidden="true">
+                <text class="hs-cartouche-text" x="922" y="72">都</text>
+                <text class="hs-cartouche-text" x="922" y="106">城</text>
+                <text class="hs-cartouche-text" x="922" y="140">累</text>
+                <text class="hs-cartouche-text" x="922" y="174">積</text>
+                <text class="hs-cartouche-text" x="922" y="208">圖</text>
+              </g>
+
+              <g class="hs-wall-labels" id="hsWallLabels"></g>
+            </svg>
+
+            <div class="map-tip" id="mapTip" role="status" aria-live="polite" hidden></div>
+          </div>
+
+          <p class="map-note">
+            ※ 이 지도는 조선 후기 회화식 지도의 형식을 참고해 새로 그린 그림입니다. 실제 지형·축척과 다릅니다.
+          </p>
+
+          <table class="map-table">
+            <caption>성곽 구간별 누적 기록</caption>
+            <thead>
+              <tr>
+                <th scope="col">구간</th>
+                <th scope="col">누적 거리</th>
+                <th scope="col">참여</th>
+                <th scope="col">완주 환산</th>
+                <th scope="col">목표 달성률</th>
+              </tr>
+            </thead>
+            <tbody id="mapTableBody"></tbody>
+          </table>
+        </div>
+
+        <div class="checkin-panel">
+          <div class="checkin-head">
+            <div>
+              <h3>성곽 스탬프 인증</h3>
+              <p>인증 포인트 가까이에서 버튼을 누르면 위치를 확인하고 스탬프를 찍습니다. 앱을 깔 필요 없습니다.</p>
+            </div>
+            <button class="checkin-btn" type="button" id="checkinBtn">현재 위치로 인증하기</button>
+          </div>
+          <p class="checkin-status" id="checkinStatus" role="status" aria-live="polite"></p>
+          <ul class="stamp-grid" id="stampGrid"></ul>
+          <p class="checkin-note" id="checkinNote"></p>
+        </div>
+
+        <div class="scale-grid" id="scaleGrid"></div>
+
+        <figure class="chart-figure">
+          <figcaption>
+            <h3>주차별 누적 거리</h3>
+            <p>캠페인 시작 이후 쌓인 거리입니다. 그래프 위에 마우스를 올리면 주차별 수치를 볼 수 있습니다. <span class="partial-note">*표시된 주차는 아직 진행 중입니다.</span></p>
+          </figcaption>
+          <div class="chart-stage" id="chartStage">
+            <svg class="chart-svg" viewBox="0 0 900 320" role="img" aria-labelledby="chartTitle">
+              <title id="chartTitle">주차별 누적 러닝 거리 추이</title>
+              <g id="chartGrid" class="chart-grid"></g>
+              <path id="chartArea" class="chart-area" />
+              <path id="chartLine" class="chart-line" />
+              <g id="chartDots" class="chart-dots"></g>
+              <line id="chartCross" class="chart-cross" x1="0" x2="0" y1="24" y2="274" hidden />
+            </svg>
+            <div class="chart-axis" id="chartAxis"></div>
+            <div class="chart-tip" id="chartTip" role="status" aria-live="polite" hidden></div>
+          </div>
+          <details class="chart-data">
+            <summary>표로 보기</summary>
+            <table>
+              <thead><tr><th scope="col">주차</th><th scope="col">주간 거리</th><th scope="col">누적 거리</th></tr></thead>
+              <tbody id="chartTableBody"></tbody>
+            </table>
+          </details>
+        </figure>
+
+        <div class="recent-block">
+          <h3>최근 인증</h3>
+          <ul class="recent-strip" id="recentStrip"></ul>
+        </div>
+
+        <p class="record-meta" id="recordMeta"></p>
+      </div>
+    </section>
+
     <section class="section-pad" id="value">
       <div class="container">
         <div class="section-head center">
@@ -178,6 +391,7 @@
     </div>
   </footer>
 
+  <script src="data.js"></script>
   <script src="script.js"></script>
 </body>
 </html>
