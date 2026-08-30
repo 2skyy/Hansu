@@ -630,27 +630,131 @@ document.querySelectorAll('.site-nav a').forEach((link) => {
   }
   const fmtDist = (m) => (m < 1000 ? `${Math.round(m)}m` : `${nf(m / 1000, 1)}km`);
 
+  let activeCourse = 'all';
+  let openStory = null;
+  const courseById = Object.fromEntries((D.courses || []).map((c) => [c.id, c]));
+  const pointsOf = (cid) =>
+    cid === 'all' ? GEO.checkpoints : GEO.checkpoints.filter((c) => c.course === cid);
+  const earnedCount = (cid) => {
+    const st = loadStamps();
+    return pointsOf(cid).filter((c) => st[c.id]).length;
+  };
+
+  function buildCourseTabs() {
+    const host = document.getElementById('courseTabs');
+    if (!host) return;
+    const tabs = [{ id: 'all', name: '전체' }].concat(D.courses || []);
+    host.innerHTML = tabs
+      .map(
+        (t) =>
+          `<button class="course-tab" type="button" role="tab" data-course="${t.id}" ` +
+          `aria-selected="${t.id === activeCourse}">${t.name}` +
+          `<span class="tab-count">${earnedCount(t.id)}/${pointsOf(t.id).length}</span></button>`
+      )
+      .join('');
+    host.querySelectorAll('.course-tab').forEach((b) => {
+      b.addEventListener('click', () => {
+        activeCourse = b.dataset.course;
+        openStory = null;
+        refreshCheckin();
+      });
+    });
+  }
+
+  function renderCourseInfo() {
+    const host = document.getElementById('courseInfo');
+    if (!host) return;
+    const c = courseById[activeCourse];
+    if (!c) {
+      const total = (D.courses || []).reduce((a, x) => a + x.distanceKm, 0);
+      host.innerHTML =
+        `<p class="ci-route">순성길 ${(D.courses || []).length}개 구간 · 한 바퀴 ${nf(total, 1)}km</p>` +
+        `<div class="ci-meta"><span>스탬프 ${GEO.checkpoints.length}곳</span>` +
+        `<span>인증 반경 ${GEO.radiusM}m</span></div>` +
+        `<p class="ci-desc">코스를 고르면 그 구간의 스탬프만 보입니다. 순서대로 돌지 않아도 되고, 원하는 구간부터 시작해도 됩니다.</p>`;
+      return;
+    }
+    host.innerHTML =
+      `<p class="ci-route">${c.from} → ${c.to}</p>` +
+      `<div class="ci-meta"><span>${nf(c.distanceKm, 1)}km</span><span>${c.duration}</span>` +
+      `<span class="ci-level">난이도 ${c.level}</span>` +
+      `<span>스탬프 ${pointsOf(c.id).length}곳</span></div>` +
+      `<p class="ci-desc">${c.summary} ${c.detail}</p>`;
+  }
+
   function renderStamps(dists) {
     const host = document.getElementById('stampGrid');
     if (!host || !GEO) return;
     const stamps = loadStamps();
-    host.innerHTML = GEO.checkpoints
+    host.innerHTML = pointsOf(activeCourse)
       .map((c) => {
         const done = Boolean(stamps[c.id]);
         const d = dists && dists[c.id];
         const near = d != null && d <= GEO.radiusM * 3;
-        const distLine =
-          d == null ? '' : `<span class="stamp-dist">${fmtDist(d)}</span>`;
+        const course = courseById[c.course];
         return (
-          `<li class="stamp${done ? ' done' : ''}${near && !done ? ' near' : ''}">` +
+          `<li><button class="stamp${done ? ' done' : ''}${near && !done ? ' near' : ''}" ` +
+          `type="button" data-cp="${c.id}" aria-expanded="${openStory === c.id}">` +
           `<span class="stamp-mark">${done ? '\u2713' : '\u00b7'}</span>` +
           `<span class="stamp-name">${c.name}</span>` +
-          `<span class="stamp-course">${c.course}</span>` +
-          distLine +
-          `</li>`
+          `<span class="stamp-course">${course ? course.name : ''}</span>` +
+          (d == null ? '' : `<span class="stamp-dist">${fmtDist(d)}</span>`) +
+          `<span class="stamp-lock">${done ? '이야기 열림' : '인증하면 열림'}</span>` +
+          `</button></li>`
         );
       })
       .join('');
+    host.querySelectorAll('.stamp').forEach((b) => {
+      b.addEventListener('click', () => {
+        openStory = openStory === b.dataset.cp ? null : b.dataset.cp;
+        refreshCheckin(dists);
+      });
+    });
+  }
+
+  // 스탬프를 찍어야 그 자리의 이야기가 열린다 — 인증이 곧 배움의 열쇠
+  function renderStory() {
+    const panel = document.getElementById('storyPanel');
+    if (!panel) return;
+    const cp = openStory && GEO.checkpoints.find((c) => c.id === openStory);
+    if (!cp) {
+      panel.hidden = true;
+      panel.innerHTML = '';
+      return;
+    }
+    const done = Boolean(loadStamps()[cp.id]);
+    const course = courseById[cp.course];
+    panel.hidden = false;
+    panel.innerHTML =
+      `<div class="sp-top"><h4>${cp.name}</h4>` +
+      `<span class="sp-course">${course ? course.name : ''}</span></div>` +
+      (done
+        ? `<p>${cp.story}</p>`
+        : `<p class="sp-locked">아직 인증하지 않은 지점입니다. ${cp.name}에 도착해 ` +
+          `${GEO.radiusM}m 안에서 인증하면 이곳의 이야기가 열립니다.</p>`) +
+      `<button class="sp-close" type="button">닫기</button>`;
+    panel.querySelector('.sp-close').addEventListener('click', () => {
+      openStory = null;
+      refreshCheckin();
+    });
+  }
+
+  function renderProgress() {
+    const n = document.getElementById('checkinProgress');
+    if (!n) return;
+    const got = earnedCount('all');
+    const total = GEO.checkpoints.length;
+    n.innerHTML =
+      `스탬프 ${got}/${total} · 이야기 ${got}편 열림` +
+      `<span class="cp-bar"><i style="width:${total ? (got / total) * 100 : 0}%"></i></span>`;
+  }
+
+  function refreshCheckin(dists) {
+    buildCourseTabs();
+    renderCourseInfo();
+    renderStamps(dists);
+    renderStory();
+    renderProgress();
   }
 
   function setStatus(msg, kind) {
@@ -667,14 +771,14 @@ document.querySelectorAll('.site-nav a').forEach((link) => {
       panel.remove();
       return;
     }
-    renderStamps(null);
+    refreshCheckin();
 
     const note = document.getElementById('checkinNote');
     if (note) {
       const parts = [
-        `인증 반경 ${GEO.radiusM}m · 포인트 ${GEO.checkpoints.length}곳.`,
+        `인증 반경 ${GEO.radiusM}m · 스탬프 ${GEO.checkpoints.length}곳. 스탬프 카드를 누르면 그 자리의 이야기를 볼 수 있습니다.`,
         '스탬프는 <b>이 브라우저에만</b> 저장됩니다. 기기를 바꾸면 사라지고 운영자도 볼 수 없습니다 — 실제 운영하려면 백엔드 연결이 필요합니다.',
-        '좌표는 공개 자료 기준 근사값입니다. 주소 끝에 <code>?geodebug=1</code>을 붙이면 모든 포인트까지의 실측 거리가 표시되니, 현장에서 그 값으로 좌표와 반경을 보정하세요.',
+        '좌표는 공개 자료 기준 근사값입니다. 주소 끝에 <code>?geodebug=1</code>을 붙이면 모든 지점까지의 실측 거리가 표시되니, 현장에서 그 값으로 좌표와 반경을 보정하세요.',
       ];
       if (!window.isSecureContext) {
         parts.unshift(
@@ -716,16 +820,19 @@ document.querySelectorAll('.site-nav a').forEach((link) => {
             const already = Boolean(stamps[nearest.c.id]);
             stamps[nearest.c.id] = { at: new Date().toISOString(), m: Math.round(nearest.m) };
             saveStamps(stamps);
-            renderStamps(geoDebug ? dists : { [nearest.c.id]: nearest.m });
-            const total = Object.keys(loadStamps()).length;
+            // 찍은 지점이 보이도록 그 코스로 옮기고 이야기를 바로 펼친다
+            activeCourse = nearest.c.course;
+            openStory = nearest.c.id;
+            refreshCheckin(geoDebug ? dists : { [nearest.c.id]: nearest.m });
+            const total = earnedCount('all');
             setStatus(
               already
                 ? `${nearest.c.name} 재인증 완료 (${fmtDist(nearest.m)}). 스탬프 ${total}/${GEO.checkpoints.length}`
-                : `${nearest.c.name} 인증 완료! (${fmtDist(nearest.m)}) 스탬프 ${total}/${GEO.checkpoints.length}`,
+                : `${nearest.c.name} 인증 완료! 이야기가 열렸습니다. 스탬프 ${total}/${GEO.checkpoints.length}`,
               'ok'
             );
           } else {
-            renderStamps(geoDebug ? dists : { [nearest.c.id]: nearest.m });
+            refreshCheckin(geoDebug ? dists : { [nearest.c.id]: nearest.m });
             setStatus(
               `가장 가까운 곳은 ${nearest.c.name}이고 ${fmtDist(nearest.m)} 떨어져 있습니다. ` +
                 `${GEO.radiusM}m 안으로 들어가면 인증됩니다. (위치 오차 약 ${Math.round(acc)}m)`,

@@ -297,13 +297,19 @@
         <div class="checkin-panel">
           <div class="checkin-head">
             <div>
-              <h3>성곽 스탬프 인증</h3>
-              <p>인증 포인트 가까이에서 버튼을 누르면 위치를 확인하고 스탬프를 찍습니다. 앱을 깔 필요 없습니다.</p>
+              <h3>성곽 스탬프 투어</h3>
+              <p>코스를 고르고 직접 걸으며 인증하세요. 스탬프를 찍으면 그 자리의 이야기가 열립니다. 앱을 깔 필요는 없습니다.</p>
             </div>
             <button class="checkin-btn" type="button" id="checkinBtn">현재 위치로 인증하기</button>
           </div>
+
+          <div class="course-tabs" id="courseTabs" role="tablist" aria-label="순성길 코스 선택"></div>
+          <div class="course-info" id="courseInfo"></div>
+
           <p class="checkin-status" id="checkinStatus" role="status" aria-live="polite"></p>
           <ul class="stamp-grid" id="stampGrid"></ul>
+          <div class="story-panel" id="storyPanel" hidden></div>
+          <p class="checkin-progress" id="checkinProgress"></p>
           <p class="checkin-note" id="checkinNote"></p>
         </div>
 
