@@ -576,13 +576,6 @@ h1 span{background:none;-webkit-background-clip:initial;background-clip:initial;
 }
 .section-head.light .section-label{color:#e0b876}
 .section-head.light h2{color:var(--hanji-card);font-family:var(--serif)}
-.route-card{
-  background:rgba(244,236,220,.09);border:1px solid rgba(244,236,220,.2);
-  border-radius:var(--radius)
-}
-.route-card h3{font-family:var(--serif);color:var(--hanji-card)}
-.route-card li{background:rgba(244,236,220,.08);border-radius:12px}
-.route-card span{background:var(--hanji-card);color:var(--jucheol)}
 
 /* --- 누적 기록 섹션 --- */
 .record{background:linear-gradient(180deg,#f0e7d5 0%,var(--hanji) 38%,#efe6d3 100%)}
@@ -1096,4 +1089,32 @@ html[data-mode="adult"] .kids-entry{display:flex}
   html[data-mode="kid"] .hero-desc{font-size:18px}
   html[data-mode="kid"] .section-head p{font-size:17px}
   html[data-mode="kid"] .quiz-q{font-size:21px}
+}
+
+/* =====================================================================
+   프로그램 (#learn) — 설명 대신 실제 기능으로 보낸다
+   ===================================================================== */
+.program-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:22px;max-width:900px;margin:0 auto}
+.program-card{
+  display:flex;flex-direction:column;padding:34px 32px;border-radius:20px;
+  background:rgba(244,236,220,.08);border:1px solid rgba(244,236,220,.2)
+}
+.pg-label{
+  margin:0 0 14px;font-size:12px;font-weight:800;letter-spacing:.16em;color:#e0b876
+}
+.program-card h3{margin:0 0 14px;font-family:var(--serif);font-size:24px;color:var(--hanji-card)}
+.program-card > p{margin:0;font-size:15.5px;line-height:1.9;color:rgba(244,236,220,.76)}
+.pg-link{
+  display:inline-block;margin-top:22px;padding:11px 18px;border-radius:6px;
+  font-size:14px;font-weight:800;letter-spacing:-.02em;
+  color:var(--deep);background:linear-gradient(135deg,#e0b876,#c9954a);
+  align-self:flex-start;transition:.18s ease
+}
+.pg-link:hover{transform:translateY(-2px);box-shadow:0 10px 24px rgba(224,184,118,.3)}
+.pg-link:focus-visible{outline:3px solid #e0b876;outline-offset:3px}
+html[data-mode="kid"] .program-card > p{font-size:17px;line-height:2}
+
+@media (max-width:880px){
+  .program-grid{grid-template-columns:1fr}
+  .program-card{padding:26px 22px}
 }
