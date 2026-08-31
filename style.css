@@ -845,3 +845,7 @@ h1 span{background:none;-webkit-background-clip:initial;background-clip:initial;
   paint-order:stroke;stroke:var(--paper);stroke-width:3.5;stroke-linejoin:round
 }
 .hs-gate.in-course text{fill:#7a4a12;font-weight:800}
+/* 맨 위로 기준점 — 레이아웃에 영향을 주지 않는 0크기 지점 */
+.top-anchor{position:absolute;top:0;left:0;width:0;height:0;overflow:hidden}
+/* 모션 최소화를 켠 사용자에게는 페이지 스크롤도 즉시 이동으로 */
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}

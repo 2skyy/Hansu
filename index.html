@@ -14,7 +14,10 @@
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <header class="site-header" id="top">
+  <!-- 맨 위로 이동용 기준점. sticky 헤더에 id를 두면 항상 화면에 보여서
+       브라우저가 "이미 도착했다"고 판단해 스크롤하지 않는다. -->
+  <span id="top" class="top-anchor" aria-hidden="true"></span>
+  <header class="site-header">
     <a class="brand" href="#top" aria-label="한수런런 홈">
       <span class="brand-mark">ㅎㅅ</span>
       <span class="brand-text">한수런런</span>

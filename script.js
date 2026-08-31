@@ -6,6 +6,18 @@ navToggle?.addEventListener('click', () => {
   navToggle.setAttribute('aria-expanded', String(isOpen));
 });
 
+/* '맨 위로'는 브라우저 기본 앵커 이동에 맡기지 않고 직접 처리한다.
+   sticky 헤더나 고정 요소가 대상 위에 겹치면 브라우저가 "이미 보인다"고 판단해
+   스크롤을 건너뛰는 경우가 있기 때문이다. */
+document.querySelectorAll('a[href="#top"]').forEach((link) => {
+  link.addEventListener('click', (e) => {
+    e.preventDefault();
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    window.scrollTo({ top: 0, behavior: reduce ? 'auto' : 'smooth' });
+    if (history.replaceState) history.replaceState(null, '', location.pathname + location.search);
+  });
+});
+
 document.querySelectorAll('.site-nav a').forEach((link) => {
   link.addEventListener('click', () => {
     siteNav.classList.remove('open');
