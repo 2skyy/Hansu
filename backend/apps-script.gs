@@ -33,10 +33,25 @@
 
 var SECRET = ''; // 비워 두면 누구나 스탬프를 보낼 수 있습니다
 
+/**
+ * runs 시트의 '구간' 칸에 넣을 수 있는 값과, 그것이 속한 성곽입니다.
+ * 지도는 코스 단위로 채워지므로 되도록 코스 id 로 받으세요.
+ * 북한산성은 공식 순성길 구간이 없어 성곽 id 를 그대로 씁니다.
+ */
+var COURSE_WALL = {
+  'baekak': 'hanyang',        // 백악구간
+  'naksan': 'hanyang',        // 낙산구간
+  'namsan': 'hanyang',        // 남산(목멱산)구간
+  'inwang': 'hanyang',        // 인왕구간
+  'tangchun-west': 'tangchun',// 탕춘대성 서성구간
+  'tangchun-east': 'tangchun',// 탕춘대성 동측구간
+  'bukhan': 'bukhan',         // 북한산성 (코스 구분 없음)
+};
+
 /* ---------- 최초 1회 실행 ---------- */
 function setup() {
   var ss = SpreadsheetApp.getActiveSpreadsheet();
-  ensureSheet(ss, 'runs', ['일시', '닉네임', '구간', '거리km', '승인']);
+  ensureSheet(ss, 'runs', ['일시', '참여코드/닉네임', '구간', '거리km', '승인']);
   ensureSheet(ss, 'stamps', ['일시', '인증지점', '참여코드', '오차m']);
   // codes 를 비워 두면 아무 코드나 받습니다. 코드를 넣으면 등록된 것만 받습니다.
   ensureSheet(ss, 'codes', ['코드', '이름표(선택)', '발급일', '사용중지']);
@@ -68,36 +83,54 @@ function buildPayload() {
 
   // runs: 승인된 행만 센다
   var runs = rows(ss, 'runs');
-  var bySeg = {};
-  var people = {};
+  var byId = {};   // 구간 id 별 집계 (코스 또는 성곽)
+  var people = {}; // 전체 순 인원
   var weekly = {};
   for (var i = 0; i < runs.length; i++) {
     var r = runs[i];
     if (String(r[4]).toLowerCase() !== 'true' && r[4] !== true && r[4] !== 'O') continue;
-    var seg = String(r[2] || '').trim();
+    var id = String(r[2] || '').trim();
     var km = Number(r[3]) || 0;
-    var nick = String(r[1] || '').trim();
-    if (!seg || km <= 0) continue;
+    var who = String(r[1] || '').trim();
+    if (!id || km <= 0) continue;
+    if (!COURSE_WALL[id]) continue; // 모르는 구간 id 는 건너뛴다 (오타로 집계가 틀어지지 않게)
 
-    if (!bySeg[seg]) bySeg[seg] = { km: 0, people: {} };
-    bySeg[seg].km += km;
-    if (nick) bySeg[seg].people[nick] = 1;
-    if (nick) people[nick] = 1;
+    if (!byId[id]) byId[id] = { km: 0, who: {} };
+    byId[id].km += km;
+    if (who) byId[id].who[who] = 1;
+    if (who) people[who] = 1;
 
     var wk = weekLabel(r[0]);
     weekly[wk] = (weekly[wk] || 0) + km;
   }
 
+  // 코스별 / 성곽별을 따로 만든다.
+  // 순 인원은 합산하면 중복이 생기므로 각 단위에서 따로 센다.
+  var courses = [];
+  var wallAgg = {};
+  for (var id2 in byId) {
+    var wall = COURSE_WALL[id2];
+    if (id2 !== wall) {
+      courses.push({
+        id: id2,
+        km: round1(byId[id2].km),
+        runners: Object.keys(byId[id2].who).length,
+      });
+    }
+    if (!wallAgg[wall]) wallAgg[wall] = { km: 0, who: {} };
+    wallAgg[wall].km += byId[id2].km;
+    for (var w2 in byId[id2].who) wallAgg[wall].who[w2] = 1;
+  }
   var segments = [];
-  for (var id in bySeg) {
+  for (var wid in wallAgg) {
     segments.push({
-      id: id,
-      km: round1(bySeg[id].km),
-      runners: Object.keys(bySeg[id].people).length,
+      id: wid,
+      km: round1(wallAgg[wid].km),
+      runners: Object.keys(wallAgg[wid].who).length,
     });
   }
 
-  // 최근 인증 8건 (닉네임만 노출)
+  // 최근 인증 8건 (참여코드/닉네임만 노출)
   var recent = [];
   for (var j = runs.length - 1; j >= 0 && recent.length < 8; j--) {
     var q = runs[j];
@@ -121,6 +154,7 @@ function buildPayload() {
     updatedAt: cfg.updatedAt || new Date().toISOString().slice(0, 10),
     isLive: String(cfg.isLive) !== 'false',
     totalRunners: Object.keys(people).length,
+    courses: courses,
     segments: segments,
     weekly: toWeeklyArray(weekly),
     recent: recent,

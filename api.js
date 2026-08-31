@@ -22,15 +22,28 @@ window.HansuApi = (function () {
     if (live.updatedAt) D.updatedAt = live.updatedAt;
     if (typeof live.isLive === 'boolean') D.isLive = live.isLive;
 
+    // 지도는 코스 단위로 채워지므로 코스를 먼저 반영한다
+    if (Array.isArray(live.courses)) {
+      const byCourse = Object.fromEntries((D.courses || []).map((c) => [c.id, c]));
+      live.courses.forEach((row) => {
+        const c = byCourse[row.id];
+        if (!c) return; // 모르는 코스 id 는 무시 (오타로 화면이 깨지지 않게)
+        if (typeof row.km === 'number') c.km = row.km;
+        if (typeof row.runners === 'number') c.runners = row.runners;
+      });
+    }
+    // 성곽 단위는 서버가 따로 센 값을 쓴다.
+    // 코스 인원을 더하면 여러 구간을 달린 사람이 중복 계산된다.
     if (Array.isArray(live.segments)) {
       const byId = Object.fromEntries(D.segments.map((s) => [s.id, s]));
       live.segments.forEach((row) => {
         const seg = byId[row.id];
-        if (!seg) return; // 모르는 구간 id 는 무시 (오타로 화면이 깨지지 않게)
+        if (!seg) return;
         if (typeof row.km === 'number') seg.km = row.km;
         if (typeof row.runners === 'number') seg.runners = row.runners;
       });
     }
+    if (typeof live.stampCodeCount === 'number') D.stampCodeCount = live.stampCodeCount;
     if (Array.isArray(live.weekly) && live.weekly.length) D.weekly = live.weekly;
     if (Array.isArray(live.recent)) D.recent = live.recent;
     if (live.stampCounts) D.stampCounts = live.stampCounts;
