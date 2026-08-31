@@ -1079,7 +1079,8 @@ document.querySelectorAll('.site-nav a').forEach((link) => {
 
 
   function buildCheckin() {
-    const panel = record.querySelector('.checkin-panel');
+    // 스탬프 패널은 #record 가 아니라 #stamp 섹션에 있다. 문서 전체에서 찾는다.
+    const panel = document.querySelector('.checkin-panel');
     if (!panel) return;
     if (!GEO || !GEO.checkpoints || !GEO.checkpoints.length) {
       panel.remove();

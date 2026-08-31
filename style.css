@@ -356,7 +356,7 @@ h1,h2,h3,p{letter-spacing:-.035em}h1{margin:0;color:var(--navy);font-size:clamp(
   border:2px dashed rgba(255,255,255,.3);font-size:17px;color:rgba(255,255,255,.45)
 }
 .stamp .stamp-name{display:block;font-size:15px;font-weight:800;color:rgba(255,255,255,.9)}
-.stamp .stamp-course{display:block;margin-top:3px;font-size:12px;color:rgba(255,255,255,.5)}
+.stamp .stamp-course{display:block;margin-top:3px;font-size:12px;color:rgba(255,255,255,.66)}
 .stamp .stamp-dist{display:block;margin-top:6px;font-size:12px;color:#8fd0ff;font-variant-numeric:tabular-nums}
 .stamp.done{
   background:linear-gradient(135deg,rgba(126,232,198,.18),rgba(143,208,255,.12));
@@ -420,7 +420,7 @@ h1,h2,h3,p{letter-spacing:-.035em}h1{margin:0;color:var(--navy);font-size:clamp(
 .stamp:hover{background:rgba(255,255,255,.12);transform:translateY(-2px)}
 .stamp:focus-visible{outline:3px solid #8fd0ff;outline-offset:3px}
 .stamp[aria-expanded="true"]{border-color:#8fd0ff;background:rgba(143,208,255,.14)}
-.stamp .stamp-lock{display:block;margin-top:6px;font-size:12px;color:rgba(255,255,255,.4)}
+.stamp .stamp-lock{display:block;margin-top:6px;font-size:12px;color:rgba(255,255,255,.62)}
 .stamp.done .stamp-lock{color:#7ee8c6}
 
 /* --- 이야기 패널 --- */
@@ -1118,3 +1118,8 @@ html[data-mode="kid"] .program-card > p{font-size:17px;line-height:2}
   .program-grid{grid-template-columns:1fr}
   .program-card{padding:26px 22px}
 }
+/* 라벨이 한글이 되어 영문용 자간·대문자 변환이 어색해졌다 */
+.section-label,.pg-label,.card-topline{text-transform:none;letter-spacing:.02em}
+.section-label{font-size:14px}
+/* 어두운 패널 위 작은 보조 글씨는 4.5:1 을 넘겨야 한다.
+   .4 / .5 는 각각 3.43:1, 4.51:1 로 부족하거나 아슬아슬했다. */
