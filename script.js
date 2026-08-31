@@ -256,19 +256,70 @@ document.querySelectorAll('.site-nav a').forEach((link) => {
   const wallsRoot = document.getElementById('hsWalls');
   const wallNodes = {};
 
+  // 지도에서 실제로 색이 칠해지는 단위.
+  // 순성길 코스가 있으면 코스마다, 없으면(북한산성) 성곽 전체가 한 단위가 된다.
+  let fillUnits = [];
+
+  const unitRate = (u) =>
+    u.course ? Math.min(1, u.course.km / u.course.goalKm) : rateOf(u.wall);
+  const unitPeople = (u) => (u.course ? u.course.runners : u.wall.runners);
+  const unitName = (u) => (u.course ? u.course.name : u.wall.name);
+
+  // 좌표 배열의 [a,b] 구간만 잘라 경로 문자열로 만든다
+  function arcPath(pts, arc) {
+    const a = arc[0];
+    const b = arc[1];
+    const steps = Math.max(4, Math.round(Math.abs(b - a) * pts.length));
+    const out = [];
+    for (let i = 0; i <= steps; i++) {
+      const p = ptOn(pts, a + ((b - a) * i) / steps);
+      out.push(`${i ? 'L' : 'M'}${p[0].toFixed(1)} ${p[1].toFixed(1)}`);
+    }
+    return out.join('');
+  }
+
   function setupWalls() {
     if (!wallsRoot) return;
+    fillUnits = [];
+
+    // 1) HTML 의 성곽선에서 좌표만 뽑고 원본은 치운다.
+    //    칠하기는 아래에서 구간별로 다시 그린다.
     wallsRoot.querySelectorAll('.hs-wall').forEach((g) => {
-      const id = g.dataset.wall;
       const lines = [];
-      // 성곽 하나가 여러 줄일 수 있다 (탕춘대성 = 서성 + 동측 연결구간)
-      g.querySelectorAll('.hs-wall-fill').forEach((fill) => {
-        const d = fill.getAttribute('d');
-        // 네온 3겹 — 먹 그림자와 발광층을 코어 뒤에 깔아준다
+      g.querySelectorAll('.hs-wall-fill').forEach((src) => {
+        const seg = src.dataset.seg || 'main';
+        const len = src.getTotalLength();
+        const SAMPLES = 480;
+        const pts = [];
+        for (let i = 0; i < SAMPLES; i++) {
+          const pt = src.getPointAtLength((i / (SAMPLES - 1)) * len);
+          pts.push([pt.x, pt.y]);
+        }
+        lines.push({ seg, pts });
+        src.remove();
+      });
+      wallNodes[g.dataset.wall] = { g, lines };
+    });
+
+    // 2) 구간별 채움 경로를 만든다
+    segs.forEach((wall) => {
+      const node = wallNodes[wall.id];
+      if (!node) return;
+      const cs = (D.courses || []).filter((c) => (c.wall || 'hanyang') === wall.id);
+      const units = cs.length
+        ? cs.map((c) => ({ wall, course: c, seg: c.seg || 'main', arc: c.arc || [0, 1] }))
+        : node.lines.map((ln) => ({ wall, course: null, seg: ln.seg, arc: [0, 1] }));
+
+      units.forEach((u) => {
+        const pts = wallPts(wall.id, u.seg);
+        if (!pts) return;
+        const d = arcPath(pts, u.arc);
+        // 네온 3겹 — 먹 그림자 / 발광 / 코어
         const shadow = el('path', { class: 'hs-wall-shadow', d });
         const glow = el('path', { class: 'hs-wall-glow', d });
-        fill.parentNode.insertBefore(shadow, fill);
-        fill.parentNode.insertBefore(glow, fill);
+        const fill = el('path', { class: 'hs-wall-fill', d });
+        if (u.course) fill.dataset.course = u.course.id;
+        node.g.append(shadow, glow, fill);
 
         const len = fill.getTotalLength();
         const layers = [shadow, glow, fill];
@@ -276,17 +327,11 @@ document.querySelectorAll('.site-nav a').forEach((link) => {
           n.style.strokeDasharray = `${len}`;
           n.style.strokeDashoffset = `${len}`;
         });
-
-        // 파티클이 따라 달릴 좌표를 미리 계산해 둔다 (매 프레임 계산하면 느리다)
-        const SAMPLES = 480;
-        const pts = [];
-        for (let i = 0; i < SAMPLES; i++) {
-          const pt = fill.getPointAtLength((i / (SAMPLES - 1)) * len);
-          pts.push([pt.x, pt.y]);
-        }
-        lines.push({ seg: fill.dataset.seg || 'main', layers, len, pts });
+        u.layers = layers;
+        u.len = len;
+        u.pts = pts;
+        fillUnits.push(u);
       });
-      wallNodes[id] = { g, lines };
     });
   }
 
@@ -299,14 +344,9 @@ document.querySelectorAll('.site-nav a').forEach((link) => {
   }
 
   function revealWalls() {
-    segs.forEach((s) => {
-      const node = wallNodes[s.id];
-      if (!node) return;
-      const ratio = rateOf(s);
-      node.lines.forEach((ln) => {
-        const off = ln.len * (1 - ratio);
-        ln.layers.forEach((n) => (n.style.strokeDashoffset = `${off}`));
-      });
+    fillUnits.forEach((u) => {
+      const off = u.len * (1 - unitRate(u));
+      u.layers.forEach((n) => (n.style.strokeDashoffset = `${off}`));
     });
   }
 
@@ -320,29 +360,28 @@ document.querySelectorAll('.site-nav a').forEach((link) => {
   function buildRunners() {
     const host = document.getElementById('hsRunners');
     if (!host) return;
-    segs.forEach((s) => {
-      const node = wallNodes[s.id];
-      if (!node) return;
-      const total = Math.max(3, Math.min(16, Math.round(s.runners / 90)));
-      const rate = rateOf(s);
-      // 줄이 여럿이면 나눠 배치한다
-      node.lines.forEach((ln, li) => {
-        const count = Math.max(2, Math.round(total / node.lines.length));
-        for (let i = 0; i < count; i++) {
-          const glow = el('circle', { class: 'hs-runner-glow', r: 7, fill: s.color, opacity: 1 });
-          const core = el('circle', { class: 'hs-runner-core', r: 2.2, opacity: 0.98 });
-          host.append(glow, core);
-          runners.push({
-            pts: ln.pts,
-            rate,
-            glow,
-            core,
-            t: i / count,
-            // 속도를 조금씩 다르게 줘야 줄지어 가는 느낌이 안 난다
-            speed: 0.00013 + (((i + li * 5) * 37) % 11) * 0.000018,
-          });
-        }
-      });
+    host.innerHTML = '';
+    runners.length = 0;
+    fillUnits.forEach((u, ui) => {
+      // 참여 인원이 많은 구간일수록 더 많은 점이 흐른다
+      const count = Math.max(2, Math.min(10, Math.round(unitPeople(u) / 110)));
+      const rate = unitRate(u);
+      for (let i = 0; i < count; i++) {
+        const glow = el('circle', { class: 'hs-runner-glow', r: 7, fill: u.wall.color, opacity: 1 });
+        const core = el('circle', { class: 'hs-runner-core', r: 2.2, opacity: 0.98 });
+        host.append(glow, core);
+        runners.push({
+          pts: u.pts,
+          a: u.arc[0],
+          b: u.arc[1],
+          rate,
+          glow,
+          core,
+          t: i / count,
+          // 속도를 조금씩 다르게 줘야 줄지어 가는 느낌이 안 난다
+          speed: 0.00016 + (((i + ui * 5) * 37) % 11) * 0.00002,
+        });
+      }
     });
     // 첫 프레임 전에도 제자리에 있어야 한다.
     // 이걸 빼면 애니메이션이 돌기 전까지 전부 (0,0)에 뭉쳐 보인다.
@@ -351,8 +390,10 @@ document.querySelectorAll('.site-nav a').forEach((link) => {
 
   function placeRunners() {
     runners.forEach((r) => {
-      const idx = Math.round(r.t * r.rate * (r.pts.length - 1));
-      const p = r.pts[Math.max(0, Math.min(r.pts.length - 1, idx))];
+      // 자기 구간 안에서, 그것도 이미 달린(채워진) 부분 위에서만 움직인다
+      const local = r.t * r.rate;
+      const p = ptOn(r.pts, r.a + (r.b - r.a) * local);
+      if (!p) return;
       r.glow.setAttribute('cx', p[0]);
       r.glow.setAttribute('cy', p[1]);
       r.core.setAttribute('cx', p[0]);
@@ -445,28 +486,49 @@ document.querySelectorAll('.site-nav a').forEach((link) => {
   const mapStage = record.querySelector('.map-stage');
 
   function bindWallHover() {
-    if (!wallsRoot || !mapTip || !mapStage) return;
-    wallsRoot.querySelectorAll('.hs-wall').forEach((g) => {
-      const s = byId[g.dataset.wall];
-      if (!s) return;
+    if (!mapTip || !mapStage) return;
+    fillUnits.forEach((u) => {
+      const rate = () => Math.round(unitRate(u) * 100);
       const show = (e) => {
         const r = mapStage.getBoundingClientRect();
+        const km = u.course ? u.course.km : u.wall.km;
+        const goal = u.course ? u.course.goalKm : u.wall.goalKm;
+        const head = u.course
+          ? `<strong>${u.course.name}</strong>${u.course.from} → ${u.course.to} · ${nf(u.course.distanceKm, 1)}km`
+          : `<strong>${u.wall.name} <span style="opacity:.6;font-weight:600">${u.wall.hanja}</span></strong>` +
+            `한 바퀴 ${nf(u.wall.lengthKm, 1)}km`;
         mapTip.innerHTML =
-          `<strong>${s.name} <span style="opacity:.6;font-weight:600">${s.hanja}</span></strong>` +
-          `누적 <span class="tip-km">${nf(s.km)} km</span> · ${nf(s.runners)}명<br>` +
-          `완주 환산 ${nf(s.km / s.lengthKm, 1)}회 · 목표 ${Math.round(rateOf(s) * 100)}%`;
+          `${head}<br>누적 <span class="tip-km">${nf(km)} km</span> · ${nf(unitPeople(u))}명<br>` +
+          `목표 ${nf(goal)}km 의 ${rate()}%`;
         mapTip.hidden = false;
         mapTip.style.left = `${e.clientX - r.left}px`;
         mapTip.style.top = `${e.clientY - r.top - 14}px`;
       };
-      g.addEventListener('pointerenter', show);
-      g.addEventListener('pointermove', show);
-      g.addEventListener('pointerleave', () => {
-        mapTip.hidden = true;
-      });
-      g.addEventListener('click', () => {
-        focused = focused === s.id ? null : s.id;
-        applyFocus();
+      const hot = (on) => u.layers.forEach((n) => n.classList.toggle('is-hot', on));
+
+      // 발광층이 굵어서 마우스가 닿기 쉽다. 코어까지 함께 묶는다.
+      [u.layers[1], u.layers[2]].forEach((node) => {
+        node.style.pointerEvents = 'stroke';
+        node.addEventListener('pointerenter', (e) => {
+          hot(true);
+          show(e);
+        });
+        node.addEventListener('pointermove', show);
+        node.addEventListener('pointerleave', () => {
+          hot(false);
+          mapTip.hidden = true;
+        });
+        node.addEventListener('click', () => {
+          // 코스가 있는 구간은 눌러서 바로 선택할 수 있게
+          if (u.course) {
+            activeCourse = activeCourse === u.course.id ? 'all' : u.course.id;
+            openStory = null;
+            refreshCheckin();
+          } else {
+            focused = focused === u.wall.id ? null : u.wall.id;
+            applyFocus();
+          }
+        });
       });
     });
   }
@@ -966,6 +1028,11 @@ document.querySelectorAll('.site-nav a').forEach((link) => {
     drawCourseArc();
     drawCheckpointMarkers();
     const on = activeCourse !== 'all' && Boolean(courseById[activeCourse]);
+    // 코스를 고르면 그 구간만 남기고 나머지 구간은 물러난다
+    fillUnits.forEach((u) => {
+      const mine = !on || (u.course && u.course.id === activeCourse);
+      u.layers.forEach((n) => n.classList.toggle('is-dim', !mine));
+    });
     if (wallsRoot) wallsRoot.classList.toggle('course-mode', on);
     // 코스를 고르면 인증지점 이름이 주인공이 되므로 산 이름은 물러나게 한다
     const svg = record.querySelector('.map-svg');
@@ -1119,6 +1186,7 @@ document.querySelectorAll('.site-nav a').forEach((link) => {
       recalc();
       runCounters(true);
       revealWalls();
+      buildRunners(); // 구간별 참여 인원이 바뀌면 점 개수도 다시 잡는다
       buildLegend();
       buildTable();
       buildScaleCards();

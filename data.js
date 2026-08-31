@@ -299,10 +299,17 @@ window.HANSU_DATA = {
      ⚠️ checkpoints의 story는 위 공식 자료와 널리 알려진 사실을 바탕으로
         작성했습니다. 대외 공개 전 팀에서 한 번 검수해 주세요.
   ------------------------------------------------------------------ */
+  /* km / goalKm / runners 는 구간별 실제 누적입니다.
+     지도의 성곽선은 이 값으로 구간마다 따로 채워집니다.
+     각 성곽의 segments 값과 합계가 맞아야 합니다.
+       한양도성 1180+2450+1890+900 = 6420 / 목표 1800+2600+2600+1000 = 8000
+       탕춘대성  820+360           = 1180 / 목표 1200+800           = 2000
+     북한산성은 공식 순성길 구간이 없어 성곽 단위로만 채웁니다. */
   courses: [
     {
       id: 'baekak', arc: [0.90, 1.13], name: '백악구간', from: '창의문', to: '혜화문',
       distanceKm: 4.7, duration: '약 3시간', level: '上', stars: 5,
+      km: 1180, goalKm: 1800, runners: 420,
       summary: '창의문에서 백악을 넘어 혜화문에 이르는 구간입니다.',
       detailKid:
         '백악산은 서울을 둘러싼 네 산 중에서 가장 높아요(342m). 한양도성을 처음 쌓기 시작한 곳이 바로 여기예요. 조금 힘들지만 경치가 아주 좋아요!',
@@ -313,6 +320,7 @@ window.HANSU_DATA = {
     {
       id: 'naksan', arc: [0.13, 0.33], name: '낙산구간', from: '혜화문', to: '광희문',
       distanceKm: 3.2, duration: '약 1시간 30분', level: '下', stars: 2,
+      km: 2450, goalKm: 2600, runners: 980,
       summary: '혜화문에서 낙산과 흥인지문을 지나 광희문까지 이어지는 구간입니다.',
       detailKid:
         '네 코스 중에 가장 쉬워요. 언덕이 완만해서 산책하듯 걸을 수 있어요. 처음이라면 여기부터 시작해 봐요. 마을을 지날 때는 조용히 걸어 주세요.',
@@ -323,6 +331,7 @@ window.HANSU_DATA = {
     {
       id: 'namsan', arc: [0.33, 0.73], name: '남산(목멱산)구간', from: '광희문', to: '돈의문터',
       distanceKm: 6.7, duration: '약 3시간 30분', level: '中', stars: 3,
+      km: 1890, goalKm: 2600, runners: 560,
       summary: '장충체육관 뒷길에서 N서울타워를 지나 백범광장과 돈의문터까지 이어지는 구간입니다.',
       detailKid:
         '네 코스 중에 가장 길어요. 남산 꼭대기에는 서울의 한가운데를 표시한 자리가 있어요. 옛날에 많이 부서졌지만 다시 고쳐서 지금 모습이 되었어요.',
@@ -333,6 +342,7 @@ window.HANSU_DATA = {
     {
       id: 'inwang', arc: [0.73, 0.90], name: '인왕구간', from: '돈의문터', to: '창의문',
       distanceKm: 4.0, duration: '약 2시간 30분', level: '上', stars: 5,
+      km: 900, goalKm: 1000, runners: 310,
       summary: '돈의문터에서 인왕산을 넘어 윤동주 시인의 언덕을 지나 창의문까지 이어지는 구간입니다.',
       detailKid:
         '바위가 많은 산길이라 겨울에는 특히 조심해야 해요. 산에 들어가면 화장실이 없으니 출발하기 전에 꼭 다녀오세요.',
@@ -344,6 +354,7 @@ window.HANSU_DATA = {
       id: 'tangchun-west', wall: 'tangchun', seg: 'west', arc: [0, 1],
       name: '탕춘대성 서성구간', from: '인왕산 동북쪽', to: '북한산 비봉',
       distanceKm: 4.0, duration: '약 2시간(예상)', level: '中', stars: 3,
+      km: 820, goalKm: 1200, runners: 250,
       summary: '현존하는 탕춘대성 구간입니다. 홍지문을 지나 북한산 비봉 아래까지 이어집니다.',
       detailKid:
         '지금도 남아 있는 탕춘대성 구간이에요. 홍지문을 지나 북한산 아래까지 이어져요. 300년쯤 전에 쌓은 성벽이랍니다.',
@@ -356,6 +367,7 @@ window.HANSU_DATA = {
       id: 'tangchun-east', wall: 'tangchun', seg: 'east', arc: [0, 1],
       name: '탕춘대성 동측구간', from: '백악산', to: '보현봉',
       distanceKm: 8.6, duration: '약 4시간(예상)', level: '上', stars: 5,
+      km: 360, goalKm: 800, runners: 120,
       summary: '한양도성 백악산에서 북한산성 보현봉으로 이어지는 연결 능선입니다.',
       detailKid:
         '백악산에서 북한산 보현봉까지 이어지는 능선이에요. 도성과 산성을 이어 주는 길이라 세계유산에 함께 들어갔어요.',

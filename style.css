@@ -146,6 +146,7 @@ h1,h2,h3,p{letter-spacing:-.035em}h1{margin:0;color:var(--navy);font-size:clamp(
 .hs-wall[data-wall="tangchun"]{--wc:var(--w-tangchun)}
 .hs-wall[data-wall="bukhan"]{--wc:var(--w-bukhan)}
 .hs-wall{cursor:pointer}
+.hs-wall-fill,.hs-wall-glow{cursor:pointer}
 .hs-wall:hover .hs-wall-fill{stroke-width:7.5}
 .hs-walls.has-focus .hs-wall:not(.is-focused){opacity:.26}
 .hs-walls.has-focus .hs-wall.is-focused .hs-wall-fill{stroke-width:7.5}
@@ -294,8 +295,10 @@ h1,h2,h3,p{letter-spacing:-.035em}h1{margin:0;color:var(--navy);font-size:clamp(
 .hs-wall-shadow,.hs-wall-glow,.hs-wall-fill{
   transition:stroke-dashoffset 1.6s cubic-bezier(.22,.75,.3,1),opacity .25s ease,stroke-width .2s ease
 }
-.hs-wall:hover .hs-wall-fill{stroke-width:6}
-.hs-wall:hover .hs-wall-glow{opacity:1;stroke-width:9}
+/* 이제 성곽 하나가 여러 구간으로 나뉘므로 강조도 구간 단위로 건다 */
+.hs-wall-fill.is-hot{stroke-width:6.5}
+.hs-wall-glow.is-hot{opacity:1;stroke-width:10}
+.hs-wall-shadow.is-dim,.hs-wall-glow.is-dim,.hs-wall-fill.is-dim{opacity:.18}
 .hs-walls.has-focus .hs-wall:not(.is-focused){opacity:.2}
 .hs-walls.has-focus .hs-wall.is-focused .hs-wall-fill{stroke-width:6}
 .hs-walls.has-focus .hs-wall.is-focused .hs-wall-glow{opacity:1;stroke-width:9}
