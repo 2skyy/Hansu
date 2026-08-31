@@ -1060,3 +1060,37 @@ h1 span{background:none;-webkit-background-clip:initial;background-clip:initial;
   .kids-entry{margin-top:18px;padding:14px 16px;gap:12px}
   .ke-icon{width:38px;height:38px}
 }
+/* 메뉴가 7개로 늘어 헤더가 빡빡해지므로 간격·크기를 조인다 */
+.site-nav{gap:18px;font-size:14.5px}
+@media (max-width:1180px){.site-nav{gap:14px;font-size:14px}}
+
+/* =====================================================================
+   어린이 모드 — 글씨를 키우고 줄 간격을 넓힌다
+   (문구 자체는 data-kid / storyKid / detailKid / bodyKid 로 갈아 끼운다)
+   ===================================================================== */
+html[data-mode="kid"] .hero-desc{font-size:21px;line-height:1.95}
+html[data-mode="kid"] .section-head p{font-size:18.5px;line-height:1.95}
+html[data-mode="kid"] .card p,
+html[data-mode="kid"] .kids-steps p,
+html[data-mode="kid"] .qna-a,
+html[data-mode="kid"] .deck-card p,
+html[data-mode="kid"] .story-panel p,
+html[data-mode="kid"] .value-list p,
+html[data-mode="kid"] .lead-box p,
+html[data-mode="kid"] .course-info p.ci-desc{font-size:17px;line-height:2.05}
+html[data-mode="kid"] .qna-q{font-size:19.5px}
+html[data-mode="kid"] .deck-card h4{font-size:26px}
+html[data-mode="kid"] .quiz-q{font-size:25px}
+html[data-mode="kid"] .quiz-opt{font-size:18px;padding:20px 22px}
+html[data-mode="kid"] .quiz-feedback{font-size:17px;line-height:1.95}
+html[data-mode="kid"] .stamp-name{font-size:16px}
+html[data-mode="kid"] .kids-entry{display:none} /* 이미 어린이 모드이므로 안내가 중복된다 */
+
+/* 어른 모드에서는 어린이 진입점이 눈에 띄어야 한다 */
+html[data-mode="adult"] .kids-entry{display:flex}
+
+@media (max-width:880px){
+  html[data-mode="kid"] .hero-desc{font-size:18px}
+  html[data-mode="kid"] .section-head p{font-size:17px}
+  html[data-mode="kid"] .quiz-q{font-size:21px}
+}

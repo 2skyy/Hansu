@@ -129,10 +129,11 @@ document.querySelectorAll('.site-nav a').forEach((link) => {
   /* ---------------------------------------------------------------
      1. 파생 수치
   --------------------------------------------------------------- */
-  const segs = D.segments;
-  const byId = Object.fromEntries(segs.map((s) => [s.id, s]));
-  const totalKm = segs.reduce((a, s) => a + s.km, 0);
-  const totalLaps = Math.round(segs.reduce((a, s) => a + s.km / s.lengthKm, 0));
+  // 서버에서 실데이터를 받으면 다시 계산해야 하므로 const 로 굳히지 않는다
+  let segs = D.segments;
+  let byId = Object.fromEntries(segs.map((s) => [s.id, s]));
+  let totalKm = 0;
+  let totalLaps = 0;
   const rateOf = (s) => Math.min(1, s.km / s.goalKm);
 
   /* ---------------------------------------------------------------
@@ -422,6 +423,7 @@ document.querySelectorAll('.site-nav a').forEach((link) => {
   function buildLegend() {
     const host = record.querySelector('.map-legend');
     if (!host) return;
+    host.innerHTML = ''; // 실데이터를 받으면 다시 호출되므로 먼저 비운다
     segs.forEach((s) => {
       const b = document.createElement('button');
       b.type = 'button';
@@ -545,12 +547,14 @@ document.querySelectorAll('.site-nav a').forEach((link) => {
   /* ---------------------------------------------------------------
      6. 카운터 롤업
   --------------------------------------------------------------- */
-  const COUNTS = { runners: D.totalRunners, km: totalKm, laps: totalLaps };
+  let COUNTS = { runners: 0, km: 0, laps: 0 };
 
-  function runCounters() {
+  // instant=true 면 애니메이션 없이 바로 최종값을 쓴다.
+  // 실데이터를 받아 다시 그릴 때는 이미 한 번 올라간 숫자를 또 굴릴 이유가 없다.
+  function runCounters(instant) {
     // 히어로에도 같은 숫자가 있으므로 문서 전체에서 찾는다
     const nodes = document.querySelectorAll('[data-count]');
-    if (reduceMotion) {
+    if (reduceMotion || instant) {
       nodes.forEach((n) => (n.textContent = nf(COUNTS[n.dataset.count] || 0)));
       return;
     }
@@ -576,12 +580,7 @@ document.querySelectorAll('.site-nav a').forEach((link) => {
   const PW = CW - PAD.l - PAD.r;
   const PH = CH - PAD.t - PAD.b;
 
-  const cum = [];
-  D.weekly.reduce((acc, w) => {
-    const v = acc + w.km;
-    cum.push({ ...w, cum: v });
-    return v;
-  }, 0);
+  let cum = [];
 
   function niceMax(v) {
     const exp = Math.pow(10, Math.floor(Math.log10(v)));
@@ -589,9 +588,29 @@ document.querySelectorAll('.site-nav a').forEach((link) => {
     const step = f <= 1 ? 1 : f <= 2 ? 2 : f <= 2.5 ? 2.5 : f <= 5 ? 5 : 10;
     return step * exp;
   }
-  const yMax = niceMax(cum[cum.length - 1].cum * 1.08);
+  let yMax = 1;
+
+  // 데이터가 바뀔 때마다 파생값을 전부 다시 만든다
+  function recalc() {
+    segs = D.segments;
+    byId = Object.fromEntries(segs.map((s) => [s.id, s]));
+    totalKm = segs.reduce((a, s) => a + s.km, 0);
+    totalLaps = Math.round(segs.reduce((a, s) => a + s.km / s.lengthKm, 0));
+    COUNTS = { runners: D.totalRunners, km: totalKm, laps: totalLaps };
+    cum = [];
+    (D.weekly || []).reduce((acc, w) => {
+      const v = acc + w.km;
+      cum.push({ ...w, cum: v });
+      return v;
+    }, 0);
+    yMax = cum.length ? niceMax(cum[cum.length - 1].cum * 1.08) : 1;
+  }
+  recalc();
   const xAt = (i) => PAD.l + (i / Math.max(1, cum.length - 1)) * PW;
   const yAt = (v) => PAD.t + PH - (v / yMax) * PH;
+
+  let chartMove = null;
+  let chartClear = null;
 
   function buildChart() {
     const grid = document.getElementById('chartGrid');
@@ -604,6 +623,12 @@ document.querySelectorAll('.site-nav a').forEach((link) => {
     const stage = document.getElementById('chartStage');
     const svg = record.querySelector('.chart-svg');
     if (!grid || !areaEl || !lineEl || !svg) return;
+
+    // 다시 그릴 수 있어야 하므로 먼저 비운다 (실데이터를 받으면 재호출된다)
+    grid.innerHTML = '';
+    dotsEl.innerHTML = '';
+    const oldLabel = svg.querySelector('.chart-end-label');
+    if (oldLabel) oldLabel.remove();
 
     // 눈금
     for (let i = 0; i <= 4; i++) {
@@ -680,8 +705,14 @@ document.querySelectorAll('.site-nav a').forEach((link) => {
         tip.style.top = `${((pts[best][1] / CH) * r.height) + (r.top - stageRect.top)}px`;
       }
     };
-    stage.addEventListener('pointermove', move);
-    stage.addEventListener('pointerleave', clear);
+    // 리스너는 한 번만 (재호출 때 중복 등록되면 안 된다)
+    if (!stage.dataset.bound) {
+      stage.dataset.bound = '1';
+      stage.addEventListener('pointermove', (e) => chartMove && chartMove(e));
+      stage.addEventListener('pointerleave', () => chartClear && chartClear());
+    }
+    chartMove = move;
+    chartClear = clear;
     clear();
 
     // 표로 보기
@@ -786,7 +817,7 @@ document.querySelectorAll('.site-nav a').forEach((link) => {
       `<div class="ci-meta"><span>${nf(c.distanceKm, 1)}km</span><span>${c.duration}</span>` +
       `<span class="ci-level">난이도 ${c.level}</span>` +
       `<span>스탬프 ${pointsOf(c.id).length}곳</span></div>` +
-      `<p class="ci-desc">${c.summary} ${c.detail}</p>`;
+      `<p class="ci-desc">${c.summary} ${isKid() && c.detailKid ? c.detailKid : c.detail}</p>`;
   }
 
   function renderStamps(dists) {
@@ -957,6 +988,29 @@ document.querySelectorAll('.site-nav a').forEach((link) => {
     n.className = `checkin-status${kind ? ' ' + kind : ''}`;
   }
 
+  function renderCheckinNote() {
+    const note = document.getElementById('checkinNote');
+    if (!note || !GEO) return;
+    // 어린이에게는 운영용 안내를 빼되, 도장이 사라질 수 있다는 사실은 그대로 알린다
+    const parts = isKid()
+      ? [
+          `인증 반경 ${GEO.radiusM}m · 도장 ${GEO.checkpoints.length}곳. 도장 카드를 누르면 그 자리의 이야기를 볼 수 있어요.`,
+          '도장은 지금 쓰는 기기에만 저장돼요. 다른 기기에서 열면 처음부터 다시 찍어야 해요.',
+        ]
+      : [
+          `인증 반경 ${GEO.radiusM}m · 스탬프 ${GEO.checkpoints.length}곳. 스탬프 카드를 누르면 그 자리의 이야기를 볼 수 있습니다.`,
+          '스탬프는 <b>이 브라우저에만</b> 저장됩니다. 기기를 바꾸면 사라지고 운영자도 볼 수 없습니다 — 실제 운영하려면 백엔드 연결이 필요합니다.',
+          '좌표는 공개 자료 기준 근사값입니다. 주소 끝에 <code>?geodebug=1</code>을 붙이면 모든 지점까지의 실측 거리가 표시되니, 현장에서 그 값으로 좌표와 반경을 보정하세요.',
+        ];
+    if (!window.isSecureContext) {
+      parts.unshift(
+        '⚠️ 지금은 보안 연결이 아니라 위치 기능이 차단됩니다. <code>localhost</code> 또는 https로 열어주세요.'
+      );
+    }
+    note.innerHTML = parts.join('<br>');
+  }
+
+
   function buildCheckin() {
     const panel = record.querySelector('.checkin-panel');
     if (!panel) return;
@@ -966,20 +1020,7 @@ document.querySelectorAll('.site-nav a').forEach((link) => {
     }
     refreshCheckin();
 
-    const note = document.getElementById('checkinNote');
-    if (note) {
-      const parts = [
-        `인증 반경 ${GEO.radiusM}m · 스탬프 ${GEO.checkpoints.length}곳. 스탬프 카드를 누르면 그 자리의 이야기를 볼 수 있습니다.`,
-        '스탬프는 <b>이 브라우저에만</b> 저장됩니다. 기기를 바꾸면 사라지고 운영자도 볼 수 없습니다 — 실제 운영하려면 백엔드 연결이 필요합니다.',
-        '좌표는 공개 자료 기준 근사값입니다. 주소 끝에 <code>?geodebug=1</code>을 붙이면 모든 지점까지의 실측 거리가 표시되니, 현장에서 그 값으로 좌표와 반경을 보정하세요.',
-      ];
-      if (!window.isSecureContext) {
-        parts.unshift(
-          '⚠️ 지금은 보안 연결이 아니라 위치 기능이 차단됩니다. <code>localhost</code> 또는 https로 열어주세요.'
-        );
-      }
-      note.innerHTML = parts.join('<br>');
-    }
+    renderCheckinNote();
 
     const btn = document.getElementById('checkinBtn');
     if (!btn) return;
@@ -1013,6 +1054,10 @@ document.querySelectorAll('.site-nav a').forEach((link) => {
             const already = Boolean(stamps[nearest.c.id]);
             stamps[nearest.c.id] = { at: new Date().toISOString(), m: Math.round(nearest.m) };
             saveStamps(stamps);
+            // 서버가 연결돼 있으면 함께 기록한다. 실패해도 기기 저장은 그대로 유지된다.
+            if (window.HansuApi && window.HansuApi.enabled) {
+              window.HansuApi.sendStamp({ checkpoint: nearest.c.id, accuracy: acc });
+            }
             // 찍은 지점이 보이도록 그 코스로 옮기고 이야기를 바로 펼친다
             activeCourse = nearest.c.course;
             openStory = nearest.c.id;
@@ -1066,7 +1111,24 @@ document.querySelectorAll('.site-nav a').forEach((link) => {
   buildCheckin();
 
   // 눈높이를 바꾸면 이야기 문구도 함께 갈아 끼운다
-  if (window.HansuMode) window.HansuMode.onChange(() => refreshCheckin());
+  if (window.HansuMode) window.HansuMode.onChange(() => { refreshCheckin(); renderCheckinNote(); });
+
+  /* 서버에서 실데이터를 받으면 이 함수로 전체를 다시 그린다 */
+  window.HansuRecord = {
+    refresh() {
+      recalc();
+      runCounters(true);
+      revealWalls();
+      buildLegend();
+      buildTable();
+      buildScaleCards();
+      buildRecent();
+      buildMeta();
+      buildChart();
+      refreshCheckin();
+      renderCheckinNote();
+    },
+  };
 
   // 지도가 화면 밖이면 파티클을 멈춘다 (배터리·CPU 절약)
   if ('IntersectionObserver' in window && mapStage) {
@@ -1193,6 +1255,7 @@ document.querySelectorAll('.site-nav a').forEach((link) => {
     `<svg class="deck-glyph" viewBox="0 0 64 64" aria-hidden="true">${GLYPHS[kind] || GLYPHS.wall}</svg>`;
 
   /* --- 이야기 카드 덱 --- */
+  const kid = () => Boolean(window.HansuMode && window.HansuMode.isKid());
   const cards = D.storyCards || [];
   const cardEl = document.getElementById('deckCard');
   if (cardEl && cards.length) {
@@ -1204,7 +1267,7 @@ document.querySelectorAll('.site-nav a').forEach((link) => {
       cardEl.innerHTML =
         `<div class="deck-no" aria-hidden="true">${c.no}</div>` +
         glyphSvg(c.glyph) +
-        `<h4>${c.title}</h4><p>${c.body}</p>` +
+        `<h4>${c.title}</h4><p>${kid() && c.bodyKid ? c.bodyKid : c.body}</p>` +
         (c.tip ? `<p class="deck-tip">${c.tip}</p>` : '') +
         `<p class="deck-count">${idx + 1} / ${cards.length}</p>`;
       if (dots) {
@@ -1243,6 +1306,7 @@ document.querySelectorAll('.site-nav a').forEach((link) => {
       });
     }
     render();
+    if (window.HansuMode) window.HansuMode.onChange(render);
   }
 
   /* --- 아이들이 그린 성곽 --- */
