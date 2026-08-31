@@ -6,17 +6,40 @@ navToggle?.addEventListener('click', () => {
   navToggle.setAttribute('aria-expanded', String(isOpen));
 });
 
-/* '맨 위로'는 브라우저 기본 앵커 이동에 맡기지 않고 직접 처리한다.
-   sticky 헤더나 고정 요소가 대상 위에 겹치면 브라우저가 "이미 보인다"고 판단해
-   스크롤을 건너뛰는 경우가 있기 때문이다. */
+/* 맨 위로 —
+   브라우저 기본 앵커 이동에 맡기지 않고 직접 스크롤한다.
+   sticky 헤더처럼 화면에 늘 떠 있는 요소가 대상이면 브라우저가
+   "이미 보인다"고 판단해 스크롤을 건너뛰기 때문이다. */
+function scrollToTop() {
+  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  window.scrollTo({ top: 0, behavior: reduce ? 'auto' : 'smooth' });
+}
+
 document.querySelectorAll('a[href="#top"]').forEach((link) => {
   link.addEventListener('click', (e) => {
     e.preventDefault();
-    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    window.scrollTo({ top: 0, behavior: reduce ? 'auto' : 'smooth' });
+    scrollToTop();
     if (history.replaceState) history.replaceState(null, '', location.pathname + location.search);
   });
 });
+
+/* 스크롤을 내리면 따라다니는 '맨 위로' 버튼 */
+(function () {
+  const btn = document.getElementById('toTop');
+  if (!btn) return;
+  const SHOW_AT = 420; // 이만큼 내려가면 나타난다
+
+  // 하는 일이 클래스 토글 하나뿐이라 rAF 로 묶지 않는다.
+  // rAF 로 묶으면 프레임이 멈춘 상황에서 플래그가 굳어 갱신이 끊길 수 있다.
+  const update = () => {
+    btn.classList.toggle('is-visible', window.scrollY > SHOW_AT);
+  };
+
+  btn.addEventListener('click', scrollToTop);
+  window.addEventListener('scroll', update, { passive: true });
+  window.addEventListener('resize', update, { passive: true });
+  update();
+})();
 
 document.querySelectorAll('.site-nav a').forEach((link) => {
   link.addEventListener('click', () => {
