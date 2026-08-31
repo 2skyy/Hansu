@@ -1,3 +1,55 @@
+/* =====================================================================
+   글 눈높이 전환 (어린이 / 어른)
+   ---------------------------------------------------------------------
+   HTML 요소에 data-kid="아이용 문구" 를 달아 두면 자동으로 바뀝니다.
+   원문은 처음 한 번 data-adult 에 보관하므로 마크업이 보존됩니다.
+   JS가 그리는 콘텐츠는 onChange 로 다시 그리게 하세요.
+   ===================================================================== */
+window.HansuMode = (function () {
+  const KEY = 'hansu.mode.v1';
+  const listeners = [];
+  let mode = 'kid'; // 이 사이트의 주 대상은 어린이
+  try {
+    const saved = localStorage.getItem(KEY);
+    if (saved === 'kid' || saved === 'adult') mode = saved;
+  } catch (e) {
+    /* 시크릿 모드 등에서 읽기가 막혀도 기본값으로 동작해야 한다 */
+  }
+
+  function apply() {
+    document.documentElement.setAttribute('data-mode', mode);
+    document.querySelectorAll('[data-kid]').forEach((el) => {
+      if (el.dataset.adult === undefined) el.dataset.adult = el.innerHTML.trim();
+      el.innerHTML = mode === 'kid' ? el.dataset.kid : el.dataset.adult;
+    });
+    document.querySelectorAll('.mode-switch button').forEach((b) => {
+      b.setAttribute('aria-pressed', String(b.dataset.mode === mode));
+    });
+    listeners.forEach((fn) => {
+      try {
+        fn(mode);
+      } catch (e) {
+        /* 한 곳이 실패해도 나머지는 계속 반영되어야 한다 */
+      }
+    });
+  }
+
+  return {
+    get: () => mode,
+    isKid: () => mode === 'kid',
+    onChange: (fn) => listeners.push(fn),
+    set: (m) => {
+      if (m !== 'kid' && m !== 'adult') return;
+      mode = m;
+      try {
+        localStorage.setItem(KEY, m);
+      } catch (e) {}
+      apply();
+    },
+    apply,
+  };
+})();
+
 const navToggle = document.querySelector('.nav-toggle');
 const siteNav = document.querySelector('.site-nav');
 
@@ -767,6 +819,10 @@ document.querySelectorAll('.site-nav a').forEach((link) => {
     });
   }
 
+  const isKid = () => Boolean(window.HansuMode && window.HansuMode.isKid());
+  // 어린이 눈높이 문구가 있으면 그것을, 없으면 원문을 쓴다
+  const kidText = (cp) => (isKid() && cp.storyKid ? cp.storyKid : cp.story);
+
   // 스탬프를 찍어야 그 자리의 이야기가 열린다 — 인증이 곧 배움의 열쇠
   function renderStory() {
     const panel = document.getElementById('storyPanel');
@@ -784,9 +840,12 @@ document.querySelectorAll('.site-nav a').forEach((link) => {
       `<div class="sp-top"><h4>${cp.name}</h4>` +
       `<span class="sp-course">${course ? course.name : ''}</span></div>` +
       (done
-        ? `<p>${cp.story}</p>`
-        : `<p class="sp-locked">아직 인증하지 않은 지점입니다. ${cp.name}에 도착해 ` +
-          `${GEO.radiusM}m 안에서 인증하면 이곳의 이야기가 열립니다.</p>`) +
+        ? `<p>${kidText(cp)}</p>`
+        : `<p class="sp-locked">${
+            isKid()
+              ? `아직 도장을 찍지 않은 곳이에요. ${cp.name}에 가서 인증하면 이야기가 열려요!`
+              : `아직 인증하지 않은 지점입니다. ${cp.name}에 도착해 ${GEO.radiusM}m 안에서 인증하면 이곳의 이야기가 열립니다.`
+          }</p>`) +
       `<button class="sp-close" type="button">닫기</button>`;
     panel.querySelector('.sp-close').addEventListener('click', () => {
       openStory = null;
@@ -1005,6 +1064,9 @@ document.querySelectorAll('.site-nav a').forEach((link) => {
   buildMeta();
   buildChart();
   buildCheckin();
+
+  // 눈높이를 바꾸면 이야기 문구도 함께 갈아 끼운다
+  if (window.HansuMode) window.HansuMode.onChange(() => refreshCheckin());
 
   // 지도가 화면 밖이면 파티클을 멈춘다 (배터리·CPU 절약)
   if ('IntersectionObserver' in window && mapStage) {
@@ -1359,4 +1421,51 @@ document.querySelectorAll('.site-nav a').forEach((link) => {
   }
 
   renderQuestion();
+})();
+
+/* =====================================================================
+   헤더 — 현재 위치 표시 · 읽은 만큼 차오르는 진행 막대
+   ===================================================================== */
+(function () {
+  const links = Array.from(document.querySelectorAll('.site-nav a'));
+  const bar = document.getElementById('scrollProgress');
+  const header = document.querySelector('.site-header');
+  if (!links.length && !bar) return;
+
+  const items = links
+    .map((a) => ({ a, el: document.querySelector(a.getAttribute('href') || '') }))
+    .filter((x) => x.el);
+
+  function update() {
+    if (items.length) {
+      // 헤더에 가려지는 만큼 아래를 기준선으로 삼는다
+      const y = window.scrollY + (header ? header.offsetHeight : 0) + 12;
+      // 메뉴에 없는 섹션(방문교육·러닝·유산가치)은 바로 앞 메뉴 항목에 흡수된다
+      let current = null;
+      items.forEach((it) => {
+        if (it.el.offsetTop <= y) current = it;
+      });
+      // 문서 맨 아래에서는 마지막 항목을 켠다 (짧은 마지막 섹션 보정)
+      if (window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 4) {
+        current = items[items.length - 1];
+      }
+      items.forEach((it) => it.a.classList.toggle('is-current', it === current));
+    }
+    if (bar) {
+      const max = document.documentElement.scrollHeight - window.innerHeight;
+      bar.style.transform = `scaleX(${max > 0 ? Math.min(1, window.scrollY / max) : 0})`;
+    }
+  }
+
+  window.addEventListener('scroll', update, { passive: true });
+  window.addEventListener('resize', update, { passive: true });
+  update();
+})();
+
+/* 눈높이 전환 버튼 배선 — 모든 렌더링이 끝난 뒤 한 번 적용 */
+(function () {
+  document.querySelectorAll('.mode-switch button').forEach((b) => {
+    b.addEventListener('click', () => window.HansuMode.set(b.dataset.mode));
+  });
+  window.HansuMode.apply();
 })();

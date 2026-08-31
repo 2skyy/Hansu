@@ -17,6 +17,7 @@
   <!-- 맨 위로 이동용 기준점. sticky 헤더에 id를 두면 항상 화면에 보여서
        브라우저가 "이미 도착했다"고 판단해 스크롤하지 않는다. -->
   <span id="top" class="top-anchor" aria-hidden="true"></span>
+  <div class="scroll-progress" id="scrollProgress" aria-hidden="true"></div>
   <header class="site-header">
     <a class="brand" href="#top" aria-label="한수런런 홈">
       <span class="brand-mark">ㅎㅅ</span>
@@ -30,11 +31,16 @@
     <nav class="site-nav" aria-label="주요 메뉴">
       <a href="#record">누적 기록</a>
       <a href="#kids">어린이 배움</a>
+      <a href="#stamp">스탬프</a>
       <a href="#gallery">그림 지도</a>
       <a href="#quiz">퀴즈</a>
-      <a href="#about">프로젝트 소개</a>
-      <a class="nav-cta" href="#checkin">스탬프 찍기</a>
+      <a href="#about">소개</a>
     </nav>
+
+    <div class="mode-switch" role="group" aria-label="글 눈높이 선택">
+      <button type="button" data-mode="kid">어린이</button>
+      <button type="button" data-mode="adult">어른</button>
+    </div>
   </header>
 
   <main>
@@ -43,15 +49,26 @@
         <div class="hero-copy">
           <p class="eyebrow">국가유산청 청년 세계유산지킴이 팀 ‘한수’</p>
           <h1>배우고 달리는<br><span>한양의 수도성곽</span></h1>
-          <p class="hero-desc">
+          <p class="hero-desc" data-kid="사람들이 성곽길을 달린 만큼 옛 지도의 성곽 선이 조금씩 채워져요. 그 자리에 가서 도장을 찍으면 숨어 있던 이야기가 열려요. 함께 &lt;b&gt;배우고&lt;/b&gt; &lt;b&gt;달리며&lt;/b&gt; 성곽을 기억해요.">
             시민들이 성곽길을 달린 기록이 옛 지도 위에 쌓입니다.
             달린 만큼 성곽선이 차오르고, 인증 지점에서 스탬프를 찍으면 그 자리의 이야기가 열립니다.
             아이들은 <b>배우고</b>, 우리는 <b>달리며</b> 한양의 수도성곽을 함께 기억합니다.
           </p>
           <div class="hero-actions">
-            <a class="button primary" href="#checkin">스탬프 찍으러 가기</a>
-            <a class="button ghost" href="#kids">아이들 배움 보기</a>
+            <a class="button primary" href="#stamp">스탬프 찍으러 가기</a>
+            <a class="button ghost" href="#record">기록 자세히 보기</a>
           </div>
+
+          <a class="kids-entry" href="#kids">
+            <span class="ke-icon" aria-hidden="true">
+              <svg viewBox="0 0 40 40"><circle cx="20" cy="11" r="5" /><path d="M20 16v11l-6 9M20 27l6 9M11 21h18" /></svg>
+            </span>
+            <span class="ke-text">
+              <b>어린이는 여기부터</b>
+              성곽 이야기 듣고 · 도장 찍고 · 퀴즈 풀기
+            </span>
+            <span class="ke-arrow" aria-hidden="true">→</span>
+          </a>
         </div>
 
         <div class="hero-visual" aria-label="한수런런 프로젝트 요약 카드">
@@ -60,7 +77,7 @@
           <article class="summary-card glass">
             <div class="card-topline">지금까지 함께 달린 거리</div>
             <h2><span data-count="km">0</span><em>km</em></h2>
-            <p>한양도성·탕춘대성·북한산성, 세 성곽을 시민들이 함께 달린 거리입니다.</p>
+            <p data-kid="한양도성·탕춘대성·북한산성, 세 성곽을 사람들이 함께 달린 거리예요.">한양도성·탕춘대성·북한산성, 세 성곽을 시민들이 함께 달린 거리입니다.</p>
             <div class="mini-grid">
               <div><strong><span data-count="runners">0</span><em>명</em></strong><span>누적 참여자</span></div>
               <div><strong><span data-count="laps">0</span><em>회</em></strong><span>누적 완주</span></div>
@@ -75,8 +92,8 @@
       <div class="container">
         <div class="section-head center">
           <p class="section-label">CUMULATIVE RECORD</p>
-          <h2>우리가 함께 달린 성곽</h2>
-          <p>
+          <h2 data-kid="다 같이 달린 성곽">우리가 함께 달린 성곽</h2>
+          <p data-kid="사람들이 달린 기록을 모두 모았어요. 옛 지도의 성곽 선이 많이 채워질수록 더 많은 사람이 이 길을 달렸다는 뜻이에요.">
             한수런런 참가자들이 남긴 기록을 모았습니다.
             옛 지도 위의 성곽선이 차오를수록, 그만큼 더 많은 사람이 이 길을 달렸다는 뜻입니다.
           </p>
@@ -103,8 +120,8 @@
         <div class="map-panel">
           <div class="map-head">
             <div>
-              <h3>성곽별 누적 현황</h3>
-              <p>구간을 선택하면 해당 성곽만 강조됩니다.</p>
+              <h3 data-kid="성곽마다 얼마나 달렸을까">성곽별 누적 현황</h3>
+              <p data-kid="구간을 누르면 그 성곽만 밝게 보여요.">구간을 선택하면 해당 성곽만 강조됩니다.</p>
             </div>
             <div class="map-legend" role="group" aria-label="성곽 구간 선택"></div>
           </div>
@@ -233,24 +250,6 @@
           </table>
         </div>
 
-        <div class="checkin-panel" id="checkin">
-          <div class="checkin-head">
-            <div>
-              <h3>성곽 스탬프 투어</h3>
-              <p>코스를 고르고 직접 걸으며 인증하세요. 스탬프를 찍으면 그 자리의 이야기가 열립니다. 앱을 깔 필요는 없습니다.</p>
-            </div>
-            <button class="checkin-btn" type="button" id="checkinBtn">현재 위치로 인증하기</button>
-          </div>
-
-          <div class="course-tabs" id="courseTabs" role="tablist" aria-label="순성길 코스 선택"></div>
-          <div class="course-info" id="courseInfo"></div>
-
-          <p class="checkin-status" id="checkinStatus" role="status" aria-live="polite"></p>
-          <ul class="stamp-grid" id="stampGrid"></ul>
-          <div class="story-panel" id="storyPanel" hidden></div>
-          <p class="checkin-progress" id="checkinProgress"></p>
-          <p class="checkin-note" id="checkinNote"></p>
-        </div>
 
         <div class="scale-grid" id="scaleGrid"></div>
 
@@ -293,8 +292,8 @@
       <div class="container">
         <div class="section-head center">
           <p class="section-label">FOR CHILDREN</p>
-          <h2>아이들은 이렇게 배웁니다</h2>
-          <p>
+          <h2 data-kid="우리는 이렇게 배워요">아이들은 이렇게 배웁니다</h2>
+          <p data-kid="어려운 말은 빼고, 네가 아는 말로 성곽 이야기를 들려줄게요. 그리고 직접 그려 보고, 마지막엔 진짜로 걸어 봐요.">
             성곽은 어른의 언어로 설명하면 아이에게 닿지 않습니다.
             한수런런은 아이가 이미 아는 말로 이야기를 옮기고, 손으로 그리게 하고, 마지막에는 직접 걸어 보게 합니다.
           </p>
@@ -303,14 +302,14 @@
         <ol class="kids-steps" id="kidsSteps"></ol>
 
         <div class="kids-qna">
-          <h3>아이들이 가장 많이 묻는 것</h3>
+          <h3 data-kid="친구들이 가장 많이 묻는 것">아이들이 가장 많이 묻는 것</h3>
           <div class="qna-list" id="kidsQna"></div>
         </div>
 
         <div class="deck">
           <div class="deck-head">
             <h3>성곽 이야기 카드</h3>
-            <p>교실에서 아이들과 넘겨 보는 카드입니다. 좌우로 넘겨 보세요.</p>
+            <p data-kid="카드를 좌우로 넘기면서 성곽 이야기를 하나씩 만나 봐요.">교실에서 아이들과 넘겨 보는 카드입니다. 좌우로 넘겨 보세요.</p>
           </div>
           <div class="deck-stage">
             <button class="deck-nav prev" type="button" id="deckPrev" aria-label="이전 카드">‹</button>
@@ -325,12 +324,42 @@
       </div>
     </section>
 
+    <section class="section-pad stamp-sec" id="stamp">
+      <div class="container">
+        <div class="section-head center">
+          <p class="section-label">STAMP TOUR</p>
+          <h2 data-kid="가서 도장을 찍어요">직접 걸으며 인증하기</h2>
+          <p data-kid="코스를 고르고 가족과 함께 걸어요. 그 자리에 도착해서 버튼을 누르면 도장이 찍히고, 숨어 있던 이야기가 열려요.">
+            코스를 고르고 성곽길을 걸으세요. 인증 지점에 도착해 버튼을 누르면 스탬프가 찍히고, 그 자리의 이야기가 열립니다.
+          </p>
+        </div>
+          <div class="checkin-panel">
+            <div class="checkin-head">
+              <div>
+                <h3>성곽 스탬프 투어</h3>
+                <p>코스를 고르고 직접 걸으며 인증하세요. 스탬프를 찍으면 그 자리의 이야기가 열립니다. 앱을 깔 필요는 없습니다.</p>
+              </div>
+              <button class="checkin-btn" type="button" id="checkinBtn">현재 위치로 인증하기</button>
+            </div>
+
+            <div class="course-tabs" id="courseTabs" role="tablist" aria-label="순성길 코스 선택"></div>
+            <div class="course-info" id="courseInfo"></div>
+
+            <p class="checkin-status" id="checkinStatus" role="status" aria-live="polite"></p>
+            <ul class="stamp-grid" id="stampGrid"></ul>
+            <div class="story-panel" id="storyPanel" hidden></div>
+            <p class="checkin-progress" id="checkinProgress"></p>
+            <p class="checkin-note" id="checkinNote"></p>
+          </div>
+      </div>
+    </section>
+
     <section class="section-pad gallery-sec" id="gallery">
       <div class="container">
         <div class="section-head center">
           <p class="section-label">CHILDREN&rsquo;S MAPS</p>
-          <h2>아이들이 그린 성곽</h2>
-          <p>
+          <h2 data-kid="친구들이 그린 성곽">아이들이 그린 성곽</h2>
+          <p data-kid="수업에서 우리 동네와 성곽을 잇는 지도를 직접 그려요. 손으로 그려 본 곳은 오래오래 기억에 남아요.">
             수업에서 아이들은 자기가 사는 동네와 성곽을 잇는 지도를 직접 그립니다.
             손으로 그려 본 곳은 오래 기억에 남습니다.
           </p>
@@ -345,7 +374,7 @@
         <div class="section-head center">
           <p class="section-label">QUIZ</p>
           <h2>얼마나 기억하고 있을까?</h2>
-          <p>배운 내용을 여섯 문제로 확인해 보세요. 틀려도 괜찮아요 — 왜 그런지 바로 알려 드립니다.</p>
+          <p data-kid="배운 것을 여섯 문제로 확인해 봐요. 틀려도 괜찮아요. 왜 그런지 바로 알려 줄게요!">배운 내용을 여섯 문제로 확인해 보세요. 틀려도 괜찮아요 — 왜 그런지 바로 알려 드립니다.</p>
         </div>
 
         <div class="quiz-card" id="quizCard">
@@ -434,7 +463,7 @@
       <div class="container">
         <div class="section-head center">
           <p class="section-label">HERITAGE VALUE</p>
-          <h2>한양의 수도성곽, 왜 중요할까?</h2>
+          <h2 data-kid="성곽이 왜 소중할까?">한양의 수도성곽, 왜 중요할까?</h2>
         </div>
         <div class="value-list">
           <article>
