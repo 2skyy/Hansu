@@ -166,6 +166,31 @@
       </div>
     </section>
 
+    <section class="section-pad quiz-sec" id="quiz">
+      <div class="container">
+        <div class="section-head center">
+          <p class="section-label">QUIZ</p>
+          <h2>얼마나 기억하고 있을까?</h2>
+          <p>배운 내용을 여섯 문제로 확인해 보세요. 틀려도 괜찮아요 — 왜 그런지 바로 알려 드립니다.</p>
+        </div>
+
+        <div class="quiz-card" id="quizCard">
+          <div class="quiz-top">
+            <span class="quiz-step" id="quizStep"></span>
+            <span class="quiz-dots" id="quizDots"></span>
+          </div>
+          <p class="quiz-q" id="quizQ"></p>
+          <ul class="quiz-options" id="quizOptions"></ul>
+          <div class="quiz-feedback" id="quizFeedback" role="status" aria-live="polite" hidden></div>
+          <div class="quiz-actions">
+            <button class="quiz-next" type="button" id="quizNext" hidden>다음 문제</button>
+          </div>
+        </div>
+
+        <div class="quiz-result" id="quizResult" hidden></div>
+      </div>
+    </section>
+
     <section class="section-pad gradient" id="run">
       <div class="container run-grid">
         <div class="section-head light">
@@ -316,8 +341,8 @@
                   <path class="hs-wall-base" d="M 386 452 C 372 418, 360 386, 352 352 C 345 322, 338 292, 332 264" />
                   <path class="hs-wall-fill" data-seg="west" d="M 386 452 C 372 418, 360 386, 352 352 C 345 322, 338 292, 332 264" />
                   <!-- 동측 연결구간: 백악산 -> 보현봉 능선 -->
-                  <path class="hs-wall-base" d="M 516 412 C 528 384, 534 350, 530 318 C 526 298, 516 288, 506 284" />
-                  <path class="hs-wall-fill" data-seg="east" d="M 516 412 C 528 384, 534 350, 530 318 C 526 298, 516 288, 506 284" />
+                  <path class="hs-wall-base" d="M 515 422 C 528 388, 534 352, 530 318 C 526 298, 515 288, 505 281" />
+                  <path class="hs-wall-fill" data-seg="east" d="M 515 422 C 528 388, 534 352, 530 318 C 526 298, 515 288, 505 281" />
                 </g>
                 <g class="hs-wall" data-wall="hanyang">
                   <path class="hs-wall-base" d="M 500 421 C 548 424, 598 442, 628 472 C 652 494, 656 514, 646 530 C 634 548, 616 564, 592 574 C 560 587, 528 591, 500 589 C 470 587, 442 577, 420 561 C 398 544, 383 520, 380 496 C 376 470, 384 448, 400 435 C 426 422, 466 418, 500 421 Z" />

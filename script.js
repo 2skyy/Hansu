@@ -1231,3 +1231,129 @@ document.querySelectorAll('.site-nav a').forEach((link) => {
     }
   }
 })();
+
+/* =====================================================================
+   어린이 퀴즈 (#quiz)
+   문항은 data.js 의 quiz 에 있습니다. 여기는 진행만 맡습니다.
+   ===================================================================== */
+(function () {
+  const D = window.HANSU_DATA;
+  const sec = document.getElementById('quiz');
+  if (!D || !D.quiz || !D.quiz.length || !sec) return;
+  const Q = D.quiz;
+
+  const card = document.getElementById('quizCard');
+  const stepEl = document.getElementById('quizStep');
+  const dotsEl = document.getElementById('quizDots');
+  const qEl = document.getElementById('quizQ');
+  const optsEl = document.getElementById('quizOptions');
+  const fbEl = document.getElementById('quizFeedback');
+  const nextEl = document.getElementById('quizNext');
+  const resultEl = document.getElementById('quizResult');
+  if (!card || !qEl || !optsEl) return;
+
+  const LABELS = ['가', '나', '다', '라'];
+  let idx = 0;
+  let score = 0;
+  let marks = []; // 문항별 정오
+
+  function renderDots() {
+    if (!dotsEl) return;
+    dotsEl.innerHTML = Q.map((_, i) => {
+      const c = marks[i] === true ? 'ok' : marks[i] === false ? 'no' : i === idx ? 'on' : '';
+      return `<i class="${c}"></i>`;
+    }).join('');
+  }
+
+  function renderQuestion() {
+    const q = Q[idx];
+    if (stepEl) stepEl.textContent = `${idx + 1} / ${Q.length}번 문제`;
+    renderDots();
+    qEl.textContent = q.q;
+    optsEl.innerHTML = q.options
+      .map(
+        (o, i) =>
+          `<li><button class="quiz-opt" type="button" data-i="${i}">` +
+          `<span class="opt-no" aria-hidden="true">${LABELS[i] || i + 1}</span>${o}</button></li>`
+      )
+      .join('');
+    optsEl.querySelectorAll('.quiz-opt').forEach((b) => {
+      b.addEventListener('click', () => choose(Number(b.dataset.i)));
+    });
+    if (fbEl) {
+      fbEl.hidden = true;
+      fbEl.innerHTML = '';
+    }
+    if (nextEl) nextEl.hidden = true;
+  }
+
+  function choose(pick) {
+    const q = Q[idx];
+    const right = pick === q.answer;
+    marks[idx] = right;
+    if (right) score += 1;
+
+    // 고른 뒤에는 답을 바꿀 수 없게 잠그고, 정답이 어디였는지 함께 보여준다
+    optsEl.querySelectorAll('.quiz-opt').forEach((b) => {
+      const i = Number(b.dataset.i);
+      b.disabled = true;
+      if (i === q.answer) b.classList.add('is-correct');
+      else if (i === pick) b.classList.add('is-wrong');
+      else b.classList.add('is-dim');
+    });
+    renderDots();
+
+    if (fbEl) {
+      fbEl.hidden = false;
+      fbEl.className = `quiz-feedback ${right ? 'ok' : 'no'}`;
+      fbEl.innerHTML =
+        `<b>${right ? '맞았어요!' : `아쉬워요. 정답은 ‘${q.options[q.answer]}’입니다.`}</b>${q.why}`;
+    }
+    if (nextEl) {
+      nextEl.hidden = false;
+      nextEl.textContent = idx < Q.length - 1 ? '다음 문제' : '결과 보기';
+      nextEl.focus();
+    }
+  }
+
+  function showResult() {
+    card.hidden = true;
+    if (!resultEl) return;
+    const pct = score / Q.length;
+    const title =
+      pct === 1 ? '성곽 박사님이네요!' : pct >= 0.6 ? '잘 기억하고 있어요!' : '다시 한 번 걸어 볼까요?';
+    const msg =
+      pct === 1
+        ? '여섯 문제를 모두 맞혔어요. 이제 직접 성곽길을 걸으며 스탬프를 모아 보세요.'
+        : pct >= 0.6
+        ? '대부분 잘 기억하고 있어요. 위의 이야기 카드를 한 번 더 넘겨 보면 나머지도 금방 채워집니다.'
+        : '괜찮아요. 이야기 카드와 스탬프 이야기를 다시 보고 오면 훨씬 쉬워져요.';
+    resultEl.hidden = false;
+    resultEl.innerHTML =
+      `<p class="qr-score">${score}<em>/${Q.length}</em></p>` +
+      `<h3>${title}</h3><p>${msg}</p>` +
+      `<button class="quiz-retry" type="button">다시 풀기</button>`;
+    resultEl.querySelector('.quiz-retry').addEventListener('click', () => {
+      idx = 0;
+      score = 0;
+      marks = [];
+      resultEl.hidden = true;
+      card.hidden = false;
+      renderQuestion();
+      card.scrollIntoView({ block: 'center', behavior: 'smooth' });
+    });
+  }
+
+  if (nextEl) {
+    nextEl.addEventListener('click', () => {
+      if (idx < Q.length - 1) {
+        idx += 1;
+        renderQuestion();
+      } else {
+        showResult();
+      }
+    });
+  }
+
+  renderQuestion();
+})();
