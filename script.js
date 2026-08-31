@@ -207,38 +207,53 @@ document.querySelectorAll('.site-nav a').forEach((link) => {
     if (!wallsRoot) return;
     wallsRoot.querySelectorAll('.hs-wall').forEach((g) => {
       const id = g.dataset.wall;
-      const fill = g.querySelector('.hs-wall-fill');
-      const d = fill.getAttribute('d');
-      // 네온 3겹 — 먹 그림자와 발광층을 코어 뒤에 깔아준다
-      const shadow = el('path', { class: 'hs-wall-shadow', d });
-      const glow = el('path', { class: 'hs-wall-glow', d });
-      fill.parentNode.insertBefore(shadow, fill);
-      fill.parentNode.insertBefore(glow, fill);
+      const lines = [];
+      // 성곽 하나가 여러 줄일 수 있다 (탕춘대성 = 서성 + 동측 연결구간)
+      g.querySelectorAll('.hs-wall-fill').forEach((fill) => {
+        const d = fill.getAttribute('d');
+        // 네온 3겹 — 먹 그림자와 발광층을 코어 뒤에 깔아준다
+        const shadow = el('path', { class: 'hs-wall-shadow', d });
+        const glow = el('path', { class: 'hs-wall-glow', d });
+        fill.parentNode.insertBefore(shadow, fill);
+        fill.parentNode.insertBefore(glow, fill);
 
-      const len = fill.getTotalLength();
-      const layers = [shadow, glow, fill];
-      layers.forEach((n) => {
-        n.style.strokeDasharray = `${len}`;
-        n.style.strokeDashoffset = `${len}`;
+        const len = fill.getTotalLength();
+        const layers = [shadow, glow, fill];
+        layers.forEach((n) => {
+          n.style.strokeDasharray = `${len}`;
+          n.style.strokeDashoffset = `${len}`;
+        });
+
+        // 파티클이 따라 달릴 좌표를 미리 계산해 둔다 (매 프레임 계산하면 느리다)
+        const SAMPLES = 480;
+        const pts = [];
+        for (let i = 0; i < SAMPLES; i++) {
+          const pt = fill.getPointAtLength((i / (SAMPLES - 1)) * len);
+          pts.push([pt.x, pt.y]);
+        }
+        lines.push({ seg: fill.dataset.seg || 'main', layers, len, pts });
       });
-
-      // 파티클이 따라 달릴 좌표를 미리 계산해 둔다 (매 프레임 계산하면 느리다)
-      const SAMPLES = 480;
-      const pts = [];
-      for (let i = 0; i < SAMPLES; i++) {
-        const pt = fill.getPointAtLength((i / (SAMPLES - 1)) * len);
-        pts.push([pt.x, pt.y]);
-      }
-      wallNodes[id] = { g, fill, glow, shadow, layers, len, pts };
+      wallNodes[id] = { g, lines };
     });
+  }
+
+  // 성곽의 특정 줄 좌표. seg 를 주지 않으면 첫 줄.
+  function wallPts(id, seg) {
+    const node = wallNodes[id];
+    if (!node || !node.lines.length) return null;
+    const ln = seg ? node.lines.find((l) => l.seg === seg) : node.lines[0];
+    return ln ? ln.pts : null;
   }
 
   function revealWalls() {
     segs.forEach((s) => {
       const node = wallNodes[s.id];
       if (!node) return;
-      const off = node.len * (1 - rateOf(s));
-      node.layers.forEach((n) => (n.style.strokeDashoffset = `${off}`));
+      const ratio = rateOf(s);
+      node.lines.forEach((ln) => {
+        const off = ln.len * (1 - ratio);
+        ln.layers.forEach((n) => (n.style.strokeDashoffset = `${off}`));
+      });
     });
   }
 
@@ -255,22 +270,26 @@ document.querySelectorAll('.site-nav a').forEach((link) => {
     segs.forEach((s) => {
       const node = wallNodes[s.id];
       if (!node) return;
-      const count = Math.max(3, Math.min(16, Math.round(s.runners / 90)));
+      const total = Math.max(3, Math.min(16, Math.round(s.runners / 90)));
       const rate = rateOf(s);
-      for (let i = 0; i < count; i++) {
-        const glow = el('circle', { class: 'hs-runner-glow', r: 7, fill: s.color, opacity: 1 });
-        const core = el('circle', { class: 'hs-runner-core', r: 2.2, opacity: 0.98 });
-        host.append(glow, core);
-        runners.push({
-          pts: node.pts,
-          rate,
-          glow,
-          core,
-          t: i / count,
-          // 속도를 조금씩 다르게 줘야 줄지어 가는 느낌이 안 난다
-          speed: 0.00013 + ((i * 37) % 11) * 0.000018,
-        });
-      }
+      // 줄이 여럿이면 나눠 배치한다
+      node.lines.forEach((ln, li) => {
+        const count = Math.max(2, Math.round(total / node.lines.length));
+        for (let i = 0; i < count; i++) {
+          const glow = el('circle', { class: 'hs-runner-glow', r: 7, fill: s.color, opacity: 1 });
+          const core = el('circle', { class: 'hs-runner-core', r: 2.2, opacity: 0.98 });
+          host.append(glow, core);
+          runners.push({
+            pts: ln.pts,
+            rate,
+            glow,
+            core,
+            t: i / count,
+            // 속도를 조금씩 다르게 줘야 줄지어 가는 느낌이 안 난다
+            speed: 0.00013 + (((i + li * 5) * 37) % 11) * 0.000018,
+          });
+        }
+      });
     });
     // 첫 프레임 전에도 제자리에 있어야 한다.
     // 이걸 빼면 애니메이션이 돌기 전까지 전부 (0,0)에 뭉쳐 보인다.
@@ -788,15 +807,13 @@ document.querySelectorAll('.site-nav a').forEach((link) => {
   const MAP_CENTER = [508, 505];
   const MAJOR_GATES = ['sukjeong', 'heunginjimun', 'sungnyemun', 'donuimun'];
 
-  const hanyangPts = () => (wallNodes.hanyang ? wallNodes.hanyang.pts : null);
-
-  // t 는 한 바퀴가 1 이므로 1을 넘으면 처음으로 돌아온다 (백악구간이 0을 지나감)
-  function ptAtT(t) {
-    const pts = hanyangPts();
+  // t 는 한 줄 전체가 1 이므로 1을 넘으면 처음으로 돌아온다 (백악구간이 0을 지나감)
+  function ptOn(pts, t) {
     if (!pts) return null;
     const tt = ((t % 1) + 1) % 1;
     return pts[Math.min(pts.length - 1, Math.round(tt * (pts.length - 1)))];
   }
+  const ptAtT = (t) => ptOn(wallPts('hanyang'), t);
 
   // 라벨은 성곽선 바깥쪽으로 밀어내 선 위에 겹치지 않게 한다
   function outward(p, dist) {
@@ -814,7 +831,7 @@ document.querySelectorAll('.site-nav a').forEach((link) => {
     const inCourse = (c) => activeCourse === 'all' || c.course === activeCourse;
     GEO.checkpoints.forEach((c) => {
       if (c.t == null) return;
-      const p = ptAtT(c.t);
+      const p = ptOn(wallPts(c.wall || 'hanyang', c.seg), c.t);
       if (!p) return;
       const done = Boolean(stamps[c.id]);
       const g = el('g', {
@@ -839,13 +856,14 @@ document.querySelectorAll('.site-nav a').forEach((link) => {
     if (!host) return;
     host.innerHTML = '';
     const c = courseById[activeCourse];
-    const pts = hanyangPts();
-    if (!c || !c.arc || !pts) return;
+    if (!c || !c.arc) return;
+    const pts = wallPts(c.wall || 'hanyang', c.seg);
+    if (!pts) return;
     const [a, b] = c.arc;
     const steps = Math.max(4, Math.round((b - a) * pts.length));
     const d = [];
     for (let i = 0; i <= steps; i++) {
-      const p = ptAtT(a + ((b - a) * i) / steps);
+      const p = ptOn(pts, a + ((b - a) * i) / steps);
       d.push(`${i ? 'L' : 'M'}${p[0].toFixed(1)} ${p[1].toFixed(1)}`);
     }
     const path = d.join('');
@@ -1006,6 +1024,10 @@ document.querySelectorAll('.site-nav a').forEach((link) => {
     revealWalls();
   };
   if ('IntersectionObserver' in window) {
+    // threshold 를 비율로 주면 안 된다.
+    // 이 섹션은 4000px 이 넘어서 화면에 18% 가 한 번에 들어오지 않는 기기가 많고,
+    // 그러면 리빌이 영영 안 걸려 빈 지도만 보이게 된다.
+    // 섹션이 조금이라도 보이는 순간 시작한다.
     const io = new IntersectionObserver(
       (entries) => {
         entries.forEach((en) => {
@@ -1015,7 +1037,7 @@ document.querySelectorAll('.site-nav a').forEach((link) => {
           }
         });
       },
-      { threshold: 0.18 }
+      { threshold: 0 }
     );
     io.observe(record);
   } else {
