@@ -970,3 +970,26 @@ h1 span{background:none;-webkit-background-clip:initial;background-clip:initial;
   .quiz-opt{font-size:15.5px;padding:15px 16px}
   .quiz-next,.quiz-retry{width:100%}
 }
+/* 히어로 요약 카드 — 살아 있는 누적 기록 */
+.summary-card h2{font-variant-numeric:tabular-nums;color:var(--jucheol)}
+.summary-card h2 em{font-style:normal;font-size:.44em;font-weight:800;margin-left:5px;color:var(--muted)}
+.mini-grid strong{
+  font-size:18px;font-variant-numeric:tabular-nums;letter-spacing:-.04em;white-space:nowrap
+}
+.mini-grid strong em{font-style:normal;font-size:.72em;font-weight:700;margin-left:2px;color:var(--muted)}
+.mini-grid div{padding:16px 10px}
+/* .mini-grid span{display:block} 이 숫자 span 까지 잡아 단위가 줄바꿈되던 것 보정 */
+.mini-grid strong span{display:inline;margin:0;font-size:inherit;color:inherit}
+/* 모바일: 요약 카드를 절대배치에서 흐름 배치로 (내용이 길어져도 안 잘리게) */
+@media (max-width:880px){
+  .hero-visual{min-height:0;margin-top:8px}
+  .summary-card{position:static;inset:auto;width:100%}
+  /* 항목이 짧아져서 좁은 화면에서도 세 칸이 들어간다 */
+  .mini-grid{grid-template-columns:repeat(3,1fr)}
+  .mini-grid div{padding:14px 6px}
+  .mini-grid strong{font-size:16px}
+}
+@media (max-width:400px){
+  .mini-grid strong{font-size:14px}
+  .mini-grid span{font-size:12px}
+}

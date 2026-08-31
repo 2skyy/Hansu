@@ -496,7 +496,8 @@ document.querySelectorAll('.site-nav a').forEach((link) => {
   const COUNTS = { runners: D.totalRunners, km: totalKm, laps: totalLaps };
 
   function runCounters() {
-    const nodes = record.querySelectorAll('[data-count]');
+    // 히어로에도 같은 숫자가 있으므로 문서 전체에서 찾는다
+    const nodes = document.querySelectorAll('[data-count]');
     if (reduceMotion) {
       nodes.forEach((n) => (n.textContent = nf(COUNTS[n.dataset.count] || 0)));
       return;
@@ -1015,12 +1016,14 @@ document.querySelectorAll('.site-nav a').forEach((link) => {
     setRunnersActive(true);
   }
 
-  // 섹션이 화면에 들어올 때 한 번만 애니메이션
-  let played = false;
+  // 히어로의 숫자는 첫 화면에 있으므로 기다리지 않고 바로 돌린다
+  runCounters();
+
+  // 지도 채우기는 기록 섹션이 보일 때
+  let revealed = false;
   const play = () => {
-    if (played) return;
-    played = true;
-    runCounters();
+    if (revealed) return;
+    revealed = true;
     revealWalls();
   };
   if ('IntersectionObserver' in window) {
