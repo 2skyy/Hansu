@@ -28,6 +28,7 @@
       <a href="#about">소개</a>
       <a href="#learn">방문교육</a>
       <a href="#kids">어린이 배움</a>
+      <a href="#gallery">그림 지도</a>
       <a href="#run">러닝</a>
       <a href="#value">유산 가치</a>
       <a class="nav-cta" href="#record">누적 기록</a>
@@ -129,8 +130,36 @@
           <div class="qna-list" id="kidsQna"></div>
         </div>
 
+        <div class="deck">
+          <div class="deck-head">
+            <h3>성곽 이야기 카드</h3>
+            <p>교실에서 아이들과 넘겨 보는 카드입니다. 좌우로 넘겨 보세요.</p>
+          </div>
+          <div class="deck-stage">
+            <button class="deck-nav prev" type="button" id="deckPrev" aria-label="이전 카드">‹</button>
+            <div class="deck-card" id="deckCard" aria-live="polite"></div>
+            <button class="deck-nav next" type="button" id="deckNext" aria-label="다음 카드">›</button>
+          </div>
+          <div class="deck-dots" id="deckDots" role="tablist" aria-label="카드 선택"></div>
+        </div>
+
         <div class="kids-stats" id="kidsStats"></div>
         <p class="kids-note">※ 교육 실적 수치는 아직 예시값입니다.</p>
+      </div>
+    </section>
+
+    <section class="section-pad gallery-sec" id="gallery">
+      <div class="container">
+        <div class="section-head center">
+          <p class="section-label">CHILDREN&rsquo;S MAPS</p>
+          <h2>아이들이 그린 성곽</h2>
+          <p>
+            수업에서 아이들은 자기가 사는 동네와 성곽을 잇는 지도를 직접 그립니다.
+            손으로 그려 본 곳은 오래 기억에 남습니다.
+          </p>
+        </div>
+        <ul class="gallery-grid" id="galleryGrid"></ul>
+        <p class="gallery-note" id="galleryNote"></p>
       </div>
     </section>
 
@@ -268,12 +297,8 @@
 
               <g class="hs-runners" id="hsRunners" aria-hidden="true"></g>
 
-              <g class="hs-gates" aria-hidden="true">
-                <g class="hs-gate" transform="translate(500 421)"><circle r="5" /><text y="-12">숙정문</text></g>
-                <g class="hs-gate" transform="translate(651 505)"><circle r="5" /><text x="14" y="4" text-anchor="start">흥인지문</text></g>
-                <g class="hs-gate" transform="translate(446 568)"><circle r="5" /><text y="19">숭례문</text></g>
-                <g class="hs-gate" transform="translate(381 489)"><circle r="5" /><text x="-14" y="4" text-anchor="end">돈의문</text></g>
-              </g>
+              <g class="hs-course" id="hsCourse" aria-hidden="true"></g>
+              <g class="hs-gates" id="hsGates" aria-hidden="true"></g>
 
               <g class="hs-labels" aria-hidden="true">
                 <text class="hs-peak-label" x="462" y="118">북한산</text>

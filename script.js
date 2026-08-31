@@ -749,7 +749,87 @@ document.querySelectorAll('.site-nav a').forEach((link) => {
       `<span class="cp-bar"><i style="width:${total ? (got / total) * 100 : 0}%"></i></span>`;
   }
 
+  /* --- 지도 연동: 코스를 고르면 그 구간이 빛난다 ------------------- */
+  const MAP_CENTER = [508, 505];
+  const MAJOR_GATES = ['sukjeong', 'heunginjimun', 'sungnyemun', 'donuimun'];
+
+  const hanyangPts = () => (wallNodes.hanyang ? wallNodes.hanyang.pts : null);
+
+  // t 는 한 바퀴가 1 이므로 1을 넘으면 처음으로 돌아온다 (백악구간이 0을 지나감)
+  function ptAtT(t) {
+    const pts = hanyangPts();
+    if (!pts) return null;
+    const tt = ((t % 1) + 1) % 1;
+    return pts[Math.min(pts.length - 1, Math.round(tt * (pts.length - 1)))];
+  }
+
+  // 라벨은 성곽선 바깥쪽으로 밀어내 선 위에 겹치지 않게 한다
+  function outward(p, dist) {
+    const dx = p[0] - MAP_CENTER[0];
+    const dy = p[1] - MAP_CENTER[1];
+    const L = Math.hypot(dx, dy) || 1;
+    return [p[0] + (dx / L) * dist, p[1] + (dy / L) * dist, dy];
+  }
+
+  function drawCheckpointMarkers() {
+    const host = document.getElementById('hsGates');
+    if (!host || !GEO) return;
+    host.innerHTML = '';
+    const stamps = loadStamps();
+    const inCourse = (c) => activeCourse === 'all' || c.course === activeCourse;
+    GEO.checkpoints.forEach((c) => {
+      if (c.t == null) return;
+      const p = ptAtT(c.t);
+      if (!p) return;
+      const done = Boolean(stamps[c.id]);
+      const g = el('g', {
+        class: `hs-gate${done ? ' is-done' : ''}${inCourse(c) ? ' in-course' : ''}`,
+      });
+      const dot = el('circle', { r: done ? 6 : 5, cx: p[0], cy: p[1] });
+      g.appendChild(dot);
+      // 이름은 4대문 또는 선택한 코스의 지점에만 — 열 개를 다 쓰면 지도가 막힌다
+      const named = activeCourse === 'all' ? MAJOR_GATES.indexOf(c.id) >= 0 : inCourse(c);
+      if (named) {
+        const [lx, ly, dy] = outward(p, 17);
+        const t = el('text', { x: lx, y: ly + (dy > 0 ? 11 : -5), 'text-anchor': 'middle' });
+        t.textContent = c.name;
+        g.appendChild(t);
+      }
+      host.appendChild(g);
+    });
+  }
+
+  function drawCourseArc() {
+    const host = document.getElementById('hsCourse');
+    if (!host) return;
+    host.innerHTML = '';
+    const c = courseById[activeCourse];
+    const pts = hanyangPts();
+    if (!c || !c.arc || !pts) return;
+    const [a, b] = c.arc;
+    const steps = Math.max(4, Math.round((b - a) * pts.length));
+    const d = [];
+    for (let i = 0; i <= steps; i++) {
+      const p = ptAtT(a + ((b - a) * i) / steps);
+      d.push(`${i ? 'L' : 'M'}${p[0].toFixed(1)} ${p[1].toFixed(1)}`);
+    }
+    const path = d.join('');
+    host.appendChild(el('path', { class: 'hs-course-glow', d: path }));
+    host.appendChild(el('path', { class: 'hs-course-core', d: path }));
+  }
+
+  function syncMapToCourse() {
+    drawCourseArc();
+    drawCheckpointMarkers();
+    const on = activeCourse !== 'all' && Boolean(courseById[activeCourse]);
+    if (wallsRoot) wallsRoot.classList.toggle('course-mode', on);
+    // 코스를 고르면 인증지점 이름이 주인공이 되므로 산 이름은 물러나게 한다
+    const svg = record.querySelector('.map-svg');
+    if (svg) svg.classList.toggle('course-mode', on);
+  }
+
   function refreshCheckin(dists) {
+    syncMapToCourse();
     buildCourseTabs();
     renderCourseInfo();
     renderStamps(dists);
@@ -953,5 +1033,144 @@ document.querySelectorAll('.site-nav a').forEach((link) => {
           `<span>${s.label}</span></div>`
       )
       .join('');
+  }
+})();
+
+/* =====================================================================
+   성곽 이야기 카드 · 아이들이 그린 성곽
+   ===================================================================== */
+(function () {
+  const D = window.HANSU_DATA;
+  if (!D) return;
+  const NS = 'http://www.w3.org/2000/svg';
+
+  /* --- 카드에 들어갈 그림 (간단한 선 그림으로 직접 그린다) --- */
+  const GLYPHS = {
+    wall:
+      '<path d="M8 44h48M8 44V30h6v-6h6v6h6v-6h6v6h6v-6h6v6h6v14" />' +
+      '<path d="M14 44V34M26 44V34M38 44V34M50 44V34" opacity=".5" />',
+    mountain:
+      '<path d="M6 46l12-20 8 12 10-18 14 26z" />' +
+      '<path d="M18 26l4 6M40 20l4 7" opacity=".5" />',
+    stone:
+      '<rect x="8" y="18" width="20" height="12" rx="2" />' +
+      '<rect x="32" y="18" width="24" height="12" rx="2" />' +
+      '<rect x="8" y="34" width="26" height="12" rx="2" />' +
+      '<rect x="38" y="34" width="18" height="12" rx="2" />',
+    gate:
+      '<path d="M6 22h52l-6-6H12z" /><path d="M12 22v24h40V22" />' +
+      '<path d="M26 46V34a6 6 0 0 1 12 0v12" />',
+    three:
+      '<path d="M32 50a22 22 0 0 1 0-36" /><path d="M32 46a16 16 0 0 1 0-26" opacity=".72" />' +
+      '<path d="M32 42a10 10 0 0 1 0-16" opacity=".45" /><path d="M32 14v36" opacity=".3" />',
+    walk:
+      '<path d="M8 48c10-4 16-14 24-14s14 8 24 6" />' +
+      '<circle cx="30" cy="18" r="5" /><path d="M30 23v10l-6 8M30 33l7 8" />',
+  };
+  const glyphSvg = (kind) =>
+    `<svg class="deck-glyph" viewBox="0 0 64 64" aria-hidden="true">${GLYPHS[kind] || GLYPHS.wall}</svg>`;
+
+  /* --- 이야기 카드 덱 --- */
+  const cards = D.storyCards || [];
+  const cardEl = document.getElementById('deckCard');
+  if (cardEl && cards.length) {
+    const dots = document.getElementById('deckDots');
+    let idx = 0;
+
+    const render = () => {
+      const c = cards[idx];
+      cardEl.innerHTML =
+        `<div class="deck-no" aria-hidden="true">${c.no}</div>` +
+        glyphSvg(c.glyph) +
+        `<h4>${c.title}</h4><p>${c.body}</p>` +
+        (c.tip ? `<p class="deck-tip">${c.tip}</p>` : '') +
+        `<p class="deck-count">${idx + 1} / ${cards.length}</p>`;
+      if (dots) {
+        dots.querySelectorAll('button').forEach((b, i) =>
+          b.setAttribute('aria-selected', String(i === idx))
+        );
+      }
+    };
+    const go = (n) => {
+      idx = (n + cards.length) % cards.length;
+      render();
+    };
+
+    if (dots) {
+      dots.innerHTML = cards
+        .map(
+          (c, i) =>
+            `<button class="deck-dot" type="button" role="tab" aria-selected="${i === 0}" ` +
+            `aria-label="${i + 1}번째 카드: ${c.title}"></button>`
+        )
+        .join('');
+      dots.querySelectorAll('button').forEach((b, i) => b.addEventListener('click', () => go(i)));
+    }
+    const prev = document.getElementById('deckPrev');
+    const next = document.getElementById('deckNext');
+    if (prev) prev.addEventListener('click', () => go(idx - 1));
+    if (next) next.addEventListener('click', () => go(idx + 1));
+
+    // 좌우 화살표로도 넘길 수 있게
+    const stage = cardEl.closest('.deck-stage');
+    if (stage) {
+      stage.setAttribute('tabindex', '0');
+      stage.addEventListener('keydown', (e) => {
+        if (e.key === 'ArrowLeft') { go(idx - 1); e.preventDefault(); }
+        if (e.key === 'ArrowRight') { go(idx + 1); e.preventDefault(); }
+      });
+    }
+    render();
+  }
+
+  /* --- 아이들이 그린 성곽 --- */
+  const grid = document.getElementById('galleryGrid');
+  if (grid && D.gallery && D.gallery.length) {
+    // 실제 작품 사진이 없을 때 쓰는 자리 그림. 항목마다 모양이 달라지도록 시드를 준다.
+    const doodle = (seed) => {
+      let s = (seed * 2654435761) >>> 0;
+      const rnd = () => ((s = (s * 1664525 + 1013904223) >>> 0) / 4294967296);
+      const cx = 60, cy = 46, pts = [];
+      for (let i = 0; i < 11; i++) {
+        const a = (i / 11) * Math.PI * 2;
+        const r = 22 + rnd() * 12;
+        pts.push([cx + Math.cos(a) * r * 1.25, cy + Math.sin(a) * r * 0.8]);
+      }
+      const loop = pts.map((p, i) => `${i ? 'L' : 'M'}${p[0].toFixed(0)} ${p[1].toFixed(0)}`).join('') + 'Z';
+      let marks = '';
+      for (let i = 0; i < 5; i++) {
+        const x = 22 + rnd() * 76, y = 22 + rnd() * 48;
+        marks += `<path d="M${x - 4} ${y}l4-5 4 5z" />`;
+      }
+      return (
+        `<svg class="gal-doodle" viewBox="0 0 120 92" aria-hidden="true">` +
+        `<path class="gal-loop" d="${loop}" />${marks}` +
+        `<path class="gal-line" d="M10 78q30-10 55 2t45-8" /></svg>`
+      );
+    };
+
+    grid.innerHTML = D.gallery
+      .map((g, i) => {
+        const art = g.image
+          ? `<img src="${g.image}" alt="${g.nick} 어린이가 그린 성곽 지도" loading="lazy" />`
+          : doodle(i + 7);
+        return (
+          `<li class="gal-item${g.image ? ' has-photo' : ''}">` +
+          `<div class="gal-frame">${art}</div>` +
+          `<p class="gal-cap">${g.caption}</p>` +
+          `<p class="gal-by">${g.nick} · ${g.grade}</p></li>`
+        );
+      })
+      .join('');
+
+    const note = document.getElementById('galleryNote');
+    if (note) {
+      const hasPhoto = D.gallery.some((g) => g.image);
+      note.innerHTML = hasPhoto
+        ? '※ 보호자 동의를 받은 작품만 올립니다. 이름은 성 없이 표기합니다.'
+        : '※ 아직 실제 작품 사진이 없어 자리 그림으로 대신했습니다. ' +
+          '<code>data.js</code>의 각 항목에 <code>image</code> 경로를 넣으면 사진으로 바뀝니다.<br>' +
+          '※ 작품을 올릴 때는 보호자 동의를 먼저 받고, 이름은 성 없이, 학교명은 넣지 마세요.';
+    }
   }
 })();
