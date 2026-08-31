@@ -1123,3 +1123,68 @@ html[data-mode="kid"] .program-card > p{font-size:17px;line-height:2}
 .section-label{font-size:14px}
 /* 어두운 패널 위 작은 보조 글씨는 4.5:1 을 넘겨야 한다.
    .4 / .5 는 각각 3.43:1, 4.51:1 로 부족하거나 아슬아슬했다. */
+
+/* =====================================================================
+   참여 코드 — 로그인 대신 쓰는 6자리 숫자
+   ===================================================================== */
+.code-box{margin-top:24px}
+.cb-on{
+  display:flex;flex-wrap:wrap;align-items:center;gap:18px;
+  padding:18px 22px;border-radius:14px;
+  background:rgba(224,184,118,.12);border:1px solid rgba(224,184,118,.34)
+}
+.cb-info{display:flex;flex-direction:column;gap:2px}
+.cb-label{font-size:12px;font-weight:800;letter-spacing:.02em;color:#e0b876}
+.cb-info strong{
+  font-family:var(--serif);font-size:24px;letter-spacing:.06em;color:var(--hanji-card);
+  font-variant-numeric:tabular-nums
+}
+.cb-name{font-size:13px;color:rgba(255,255,255,.72)}
+.cb-count{margin-left:auto;font-size:14px;color:rgba(255,255,255,.72)}
+.cb-count b{font-size:22px;color:#e0b876;margin:0 3px 0 6px;font-variant-numeric:tabular-nums}
+.cb-count span{font-size:13px}
+.cb-change{
+  padding:9px 15px;border-radius:6px;cursor:pointer;font-family:inherit;
+  font-size:13px;font-weight:800;color:rgba(255,255,255,.86);
+  background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.24)
+}
+.cb-change:hover{background:rgba(255,255,255,.18)}
+.cb-change:focus-visible,.cb-form button:focus-visible,.cb-form input:focus-visible{
+  outline:3px solid #e0b876;outline-offset:2px
+}
+
+.cb-form{padding:20px 22px;border-radius:14px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.14)}
+.cb-form label{display:block;margin-bottom:12px;font-size:15px;font-weight:800;color:var(--hanji-card)}
+.cb-row{display:flex;flex-wrap:wrap;gap:9px}
+.cb-form input{
+  flex:0 1 190px;min-width:0;height:48px;padding:0 16px;border-radius:8px;
+  font-family:var(--serif);font-size:22px;letter-spacing:.12em;text-align:center;
+  color:var(--deep);background:var(--hanji-card);border:1px solid rgba(255,255,255,.3);
+  font-variant-numeric:tabular-nums
+}
+.cb-form input::placeholder{color:#b6a992;letter-spacing:.12em}
+.cb-form button[type="submit"]{
+  height:48px;padding:0 22px;border:0;border-radius:8px;cursor:pointer;
+  font-family:inherit;font-size:15px;font-weight:800;color:var(--deep);
+  background:linear-gradient(135deg,#e0b876,#c9954a)
+}
+.cb-cancel{
+  height:48px;padding:0 18px;border-radius:8px;cursor:pointer;font-family:inherit;
+  font-size:14px;font-weight:800;color:rgba(255,255,255,.8);
+  background:transparent;border:1px solid rgba(255,255,255,.24)
+}
+.cb-hint{margin:12px 0 0;font-size:13px;color:rgba(255,255,255,.68)}
+.cb-msg{margin:10px 0 0;font-size:14px;font-weight:700;color:#e8c98a;min-height:1px}
+.cb-msg.err{color:#ffb3ab}
+.cb-skip{margin:14px 0 0;font-size:13px;line-height:1.7;color:rgba(255,255,255,.62)}
+html[data-mode="kid"] .cb-form label{font-size:17px}
+html[data-mode="kid"] .cb-hint,html[data-mode="kid"] .cb-skip{font-size:14px}
+
+@media (max-width:880px){
+  .cb-on{gap:12px;padding:16px}
+  .cb-count{margin-left:0;width:100%}
+  .cb-change{width:100%}
+  .cb-form{padding:16px}
+  .cb-form input{flex:1 1 100%}
+  .cb-form button[type="submit"],.cb-cancel{flex:1 1 auto}
+}

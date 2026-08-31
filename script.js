@@ -868,7 +868,8 @@ document.querySelectorAll('.site-nav a').forEach((link) => {
     if (!c) {
       const total = (D.courses || []).reduce((a, x) => a + x.distanceKm, 0);
       host.innerHTML =
-        `<p class="ci-route">순성길 ${(D.courses || []).length}개 구간 · 한 바퀴 ${nf(total, 1)}km</p>` +
+        // 31.2km 는 탕춘대성까지 합친 코스 전체 길이다. 한양도성 한 바퀴(18.6km)와 다르다.
+        `<p class="ci-route">전체 ${(D.courses || []).length}개 구간 · 코스 합계 ${nf(total, 1)}km</p>` +
         `<div class="ci-meta"><span>스탬프 ${GEO.checkpoints.length}곳</span>` +
         `<span>인증 반경 ${GEO.radiusM}m</span></div>` +
         `<p class="ci-desc">코스를 고르면 그 구간의 스탬프만 보입니다. 순서대로 돌지 않아도 되고, 원하는 구간부터 시작해도 됩니다.</p>`;
@@ -1041,6 +1042,7 @@ document.querySelectorAll('.site-nav a').forEach((link) => {
 
   function refreshCheckin(dists) {
     syncMapToCourse();
+    renderCodeBox();
     buildCourseTabs();
     renderCourseInfo();
     renderStamps(dists);
@@ -1053,6 +1055,127 @@ document.querySelectorAll('.site-nav a').forEach((link) => {
     if (!n) return;
     n.textContent = msg;
     n.className = `checkin-status${kind ? ' ' + kind : ''}`;
+  }
+
+  /* --- 참여 코드 -----------------------------------------------------
+     로그인을 두지 않기 위한 장치. 이름·연락처를 받지 않고 코드만 씁니다.
+     코드가 없어도 도장은 찍히지만 그 기기에만 남습니다.
+  ------------------------------------------------------------------ */
+  const CODE_KEY = 'hansu.code.v1';
+  const PART = D.participation || {};
+
+  const getCode = () => {
+    try {
+      return localStorage.getItem(CODE_KEY) || '';
+    } catch (e) {
+      return '';
+    }
+  };
+  const setCode = (v) => {
+    try {
+      if (v) localStorage.setItem(CODE_KEY, v);
+      else localStorage.removeItem(CODE_KEY);
+    } catch (e) {}
+  };
+  const codeLabel = (v) => (v.length === 6 ? `${v.slice(0, 3)} ${v.slice(3)}` : v);
+
+  let codeName = ''; // 운영자가 코드에 붙여 둔 이름표 (예: 3학년 2반)
+  let codeEditing = false;
+
+  function renderCodeBox() {
+    const host = document.getElementById('codeBox');
+    if (!host) return;
+    if (!PART.enabled) {
+      host.hidden = true;
+      return;
+    }
+    const kid = isKid();
+    const code = getCode();
+    const got = earnedCount('all');
+
+    if (code && !codeEditing) {
+      host.innerHTML =
+        `<div class="cb-on">` +
+        `<div class="cb-info"><span class="cb-label">${kid ? '내 참여 코드' : '참여 코드'}</span>` +
+        `<strong>${codeLabel(code)}</strong>` +
+        (codeName ? `<span class="cb-name">${codeName}</span>` : '') +
+        `</div>` +
+        `<div class="cb-count">${kid ? '모은 도장' : '모은 스탬프'} <b>${got}</b>` +
+        `<span>/ ${GEO.checkpoints.length}</span></div>` +
+        `<button class="cb-change" type="button">${kid ? '코드 바꾸기' : '코드 변경'}</button>` +
+        `</div>`;
+      host.querySelector('.cb-change').addEventListener('click', () => {
+        codeEditing = true;
+        renderCodeBox();
+      });
+      return;
+    }
+
+    host.innerHTML =
+      `<form class="cb-form" novalidate>` +
+      `<label for="codeInput">${kid ? '참여 코드가 있나요?' : '참여 코드를 입력하세요'}</label>` +
+      `<div class="cb-row">` +
+      `<input id="codeInput" name="code" type="text" inputmode="numeric" autocomplete="off" ` +
+      `maxlength="${PART.digits || 6}" placeholder="${'0'.repeat(PART.digits || 6)}" value="${code}" />` +
+      `<button type="submit">확인</button>` +
+      (code ? `<button type="button" class="cb-cancel">취소</button>` : '') +
+      `</div>` +
+      `<p class="cb-hint">${PART.hint || ''}</p>` +
+      `<p class="cb-msg" role="status" aria-live="polite"></p>` +
+      `<p class="cb-skip">${
+        kid
+          ? '코드가 없어도 도장은 찍을 수 있어요. 다만 지금 쓰는 기기에만 저장돼요.'
+          : '코드 없이도 인증할 수 있습니다. 다만 기록이 이 브라우저에만 남습니다.'
+      }</p>` +
+      `</form>`;
+
+    const form = host.querySelector('.cb-form');
+    const input = host.querySelector('#codeInput');
+    const msg = host.querySelector('.cb-msg');
+    const cancel = host.querySelector('.cb-cancel');
+    if (cancel) {
+      cancel.addEventListener('click', () => {
+        codeEditing = false;
+        renderCodeBox();
+      });
+    }
+    // 숫자만 남긴다 (아이들이 다른 문자를 넣어도 걸리지 않게)
+    input.addEventListener('input', () => {
+      input.value = input.value.replace(/\D/g, '').slice(0, PART.digits || 6);
+    });
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const v = input.value.trim();
+      const n = PART.digits || 6;
+      if (v.length !== n) {
+        msg.textContent = `${n}자리 숫자를 입력해 주세요.`;
+        msg.className = 'cb-msg err';
+        return;
+      }
+      msg.textContent = '확인하는 중입니다…';
+      msg.className = 'cb-msg';
+      const res = await verifyCode(v);
+      if (!res.ok) {
+        msg.textContent = res.message || '등록되지 않은 코드입니다. 받으신 코드를 다시 확인해 주세요.';
+        msg.className = 'cb-msg err';
+        return;
+      }
+      setCode(v);
+      codeName = res.name || '';
+      codeEditing = false;
+      renderCodeBox();
+    });
+  }
+
+  // 서버가 연결돼 있으면 등록된 코드인지 물어보고, 아니면 형식만 본다
+  async function verifyCode(v) {
+    if (!window.HansuApi || !window.HansuApi.enabled) return { ok: true };
+    try {
+      return await window.HansuApi.checkCode(v);
+    } catch (e) {
+      // 서버가 죽어도 참여를 막지는 않는다
+      return { ok: true };
+    }
   }
 
   function renderCheckinNote() {
@@ -1124,7 +1247,11 @@ document.querySelectorAll('.site-nav a').forEach((link) => {
             saveStamps(stamps);
             // 서버가 연결돼 있으면 함께 기록한다. 실패해도 기기 저장은 그대로 유지된다.
             if (window.HansuApi && window.HansuApi.enabled) {
-              window.HansuApi.sendStamp({ checkpoint: nearest.c.id, accuracy: acc });
+              window.HansuApi.sendStamp({
+                checkpoint: nearest.c.id,
+                accuracy: acc,
+                code: getCode(),
+              });
             }
             // 찍은 지점이 보이도록 그 코스로 옮기고 이야기를 바로 펼친다
             activeCourse = nearest.c.course;

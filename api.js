@@ -72,7 +72,20 @@ window.HansuApi = (function () {
     }
   }
 
-  return { enabled, url, load, sendStamp };
+  /* 참여 코드가 등록된 것인지 서버에 물어본다.
+     서버의 codes 시트가 비어 있으면 서버가 그냥 통과시킨다. */
+  async function checkCode(code) {
+    if (!enabled) return { ok: true };
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({ action: 'checkCode', code: code }),
+    });
+    const out = await res.json();
+    return out && typeof out.ok === 'boolean' ? out : { ok: true };
+  }
+
+  return { enabled, url, load, sendStamp, checkCode };
 })();
 
 // 스크립트 순서상 이 파일이 마지막이므로 여기서 바로 불러온다

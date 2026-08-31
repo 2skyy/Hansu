@@ -16,7 +16,15 @@
  * [시트 구성]
  *  runs    : 러닝 인증   (승인된 행만 집계)
  *  stamps  : 스탬프 인증 (지오펜스 통과 기록)
+ *  codes   : 참여 코드   (로그인 대신 쓰는 코드. 비우면 아무 코드나 허용)
  *  config  : 기준일 등 운영 값
+ *
+ * [참여 코드]
+ *  로그인을 두지 않기 위한 장치입니다. 이름·이메일·전화번호를 받지 않으므로
+ *  아동 개인정보 수집에 해당하지 않습니다.
+ *  codes 시트에 6자리 숫자를 미리 넣어 두고 방문교육·행사에서 나눠 주세요.
+ *  이름표 칸에 '3학년 2반' 처럼 적으면 화면에 함께 표시됩니다.
+ *  사용중지 칸에 true 를 넣으면 그 코드는 더 이상 받지 않습니다.
  *
  * ⚠️ 액세스 권한을 '모든 사용자'로 두면 주소를 아는 누구나 기록을 보낼 수
  *    있습니다. 대회·캠페인 기간에만 열거나, 아래 SECRET 을 채워
@@ -29,7 +37,9 @@ var SECRET = ''; // 비워 두면 누구나 스탬프를 보낼 수 있습니다
 function setup() {
   var ss = SpreadsheetApp.getActiveSpreadsheet();
   ensureSheet(ss, 'runs', ['일시', '닉네임', '구간', '거리km', '승인']);
-  ensureSheet(ss, 'stamps', ['일시', '인증지점', '닉네임', '오차m']);
+  ensureSheet(ss, 'stamps', ['일시', '인증지점', '참여코드', '오차m']);
+  // codes 를 비워 두면 아무 코드나 받습니다. 코드를 넣으면 등록된 것만 받습니다.
+  ensureSheet(ss, 'codes', ['코드', '이름표(선택)', '발급일', '사용중지']);
   var cfg = ensureSheet(ss, 'config', ['키', '값']);
   if (cfg.getLastRow() < 2) {
     cfg.appendRow(['updatedAt', new Date().toISOString().slice(0, 10)]);
@@ -98,9 +108,12 @@ function buildPayload() {
   // 스탬프는 지점별 횟수만 (누가 찍었는지는 내보내지 않는다)
   var stampRows = rows(ss, 'stamps');
   var stampCounts = {};
+  var stampCodes = {};
   for (var k = 0; k < stampRows.length; k++) {
     var cp = String(stampRows[k][1] || '').trim();
     if (cp) stampCounts[cp] = (stampCounts[cp] || 0) + 1;
+    var cd = String(stampRows[k][2] || '').trim();
+    if (cd) stampCodes[cd] = 1;
   }
 
   return {
@@ -112,6 +125,7 @@ function buildPayload() {
     weekly: toWeeklyArray(weekly),
     recent: recent,
     stampCounts: stampCounts,
+    stampCodeCount: Object.keys(stampCodes).length,
   };
 }
 
@@ -124,7 +138,12 @@ function doPost(e) {
     return json({ ok: false, error: 'bad json' });
   }
   if (SECRET && body.secret !== SECRET) return json({ ok: false, error: 'unauthorized' });
+  if (body.action === 'checkCode') return json(lookupCode(String(body.code || '').trim()));
   if (body.action !== 'stamp') return json({ ok: false, error: 'unknown action' });
+
+  var code = String(body.code || '').trim();
+  var chk = lookupCode(code);
+  if (!chk.ok) return json(chk);
 
   var cp = String(body.checkpoint || '').trim();
   if (!cp) return json({ ok: false, error: 'checkpoint required' });
@@ -134,13 +153,26 @@ function doPost(e) {
   if (!sh) return json({ ok: false, error: 'run setup() first' });
 
   // 닉네임은 선택. 좌표는 저장하지 않는다 (아동 위치정보를 남기지 않기 위해)
-  sh.appendRow([
-    new Date(),
-    cp,
-    String(body.nick || '').slice(0, 20),
-    Math.round(Number(body.accuracy) || 0),
-  ]);
+  sh.appendRow([new Date(), cp, code, Math.round(Number(body.accuracy) || 0)]);
   return json({ ok: true, checkpoint: cp });
+}
+
+/* ---------- 참여 코드 ---------- */
+function lookupCode(code) {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var rows_ = rows(ss, 'codes');
+  // 목록이 비어 있으면 준비 단계로 보고 통과시킨다
+  if (!rows_.length) return { ok: true, name: '' };
+  if (!code) return { ok: false, message: '참여 코드를 입력해 주세요.' };
+  for (var i = 0; i < rows_.length; i++) {
+    if (String(rows_[i][0]).trim() !== code) continue;
+    var off = String(rows_[i][3]).toLowerCase();
+    if (off === 'true' || rows_[i][3] === true) {
+      return { ok: false, message: '사용이 중지된 코드입니다.' };
+    }
+    return { ok: true, name: String(rows_[i][1] || '').trim() };
+  }
+  return { ok: false, message: '등록되지 않은 코드입니다. 받으신 코드를 다시 확인해 주세요.' };
 }
 
 /* ---------- 유틸 ---------- */
