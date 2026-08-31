@@ -1005,20 +1005,6 @@ h1 span{background:none;-webkit-background-clip:initial;background-clip:initial;
 .site-nav a.is-current{color:var(--jucheol)}
 .site-nav a.is-current::after{transform:scaleX(1)}
 
-.mode-switch{
-  display:inline-flex;flex:0 0 auto;padding:3px;border-radius:999px;
-  background:var(--hanji-deep);border:1px solid var(--line)
-}
-.mode-switch button{
-  padding:7px 14px;border:0;border-radius:999px;cursor:pointer;
-  font-family:inherit;font-size:13px;font-weight:800;letter-spacing:-.02em;
-  color:var(--muted);background:transparent;transition:.18s ease
-}
-.mode-switch button[aria-pressed="true"]{
-  color:var(--hanji-card);background:var(--jucheol);
-  box-shadow:0 4px 12px rgba(168,56,46,.28)
-}
-.mode-switch button:focus-visible{outline:3px solid var(--jucheol);outline-offset:2px}
 
 /* 읽고 있는 위치를 알려주는 상단 진행 막대 */
 .scroll-progress{
@@ -1027,23 +1013,6 @@ h1 span{background:none;-webkit-background-clip:initial;background-clip:initial;
   z-index:70;pointer-events:none
 }
 
-/* 히어로 — 어린이 전용 진입점 */
-.kids-entry{
-  display:flex;align-items:center;gap:16px;margin-top:22px;padding:16px 20px;
-  max-width:520px;border-radius:16px;
-  background:linear-gradient(135deg,rgba(168,56,46,.09),rgba(201,149,74,.09));
-  border:1px dashed rgba(168,56,46,.4);transition:.2s ease
-}
-.kids-entry:hover{
-  background:linear-gradient(135deg,rgba(168,56,46,.15),rgba(201,149,74,.12));
-  border-style:solid;transform:translateY(-2px)
-}
-.kids-entry:focus-visible{outline:3px solid var(--jucheol);outline-offset:3px}
-.ke-icon{flex:0 0 auto;display:grid;place-items:center;width:44px;height:44px;border-radius:50%;background:var(--jucheol)}
-.ke-icon svg{width:24px;height:24px;fill:none;stroke:var(--hanji-card);stroke-width:2.4;stroke-linecap:round}
-.ke-text{display:block;font-size:14px;color:var(--muted);line-height:1.5}
-.ke-text b{display:block;font-family:var(--serif);font-size:17px;color:var(--ink);margin-bottom:2px}
-.ke-arrow{margin-left:auto;font-size:20px;color:var(--jucheol);font-weight:800}
 
 /* 스탬프 투어 섹션 */
 .stamp-sec{background:linear-gradient(180deg,var(--hanji),#f0e7d5)}
@@ -1051,44 +1020,35 @@ h1 span{background:none;-webkit-background-clip:initial;background-clip:initial;
 
 @media (max-width:880px){
   .site-header{gap:12px}
-  .mode-switch button{padding:6px 11px;font-size:12px}
   .site-nav{top:68px}
-  .kids-entry{margin-top:18px;padding:14px 16px;gap:12px}
-  .ke-icon{width:38px;height:38px}
 }
 /* 메뉴가 7개로 늘어 헤더가 빡빡해지므로 간격·크기를 조인다 */
 .site-nav{gap:18px;font-size:14.5px}
 @media (max-width:1180px){.site-nav{gap:14px;font-size:14px}}
 
 /* =====================================================================
-   어린이 모드 — 글씨를 키우고 줄 간격을 넓힌다
-   (문구 자체는 data-kid / storyKid / detailKid / bodyKid 로 갈아 끼운다)
+   본문 크기 — 어린이가 읽기 편하도록 크게 잡았습니다
    ===================================================================== */
-html[data-mode="kid"] .hero-desc{font-size:21px;line-height:1.95}
-html[data-mode="kid"] .section-head p{font-size:18.5px;line-height:1.95}
-html[data-mode="kid"] .card p,
-html[data-mode="kid"] .kids-steps p,
-html[data-mode="kid"] .qna-a,
-html[data-mode="kid"] .deck-card p,
-html[data-mode="kid"] .story-panel p,
-html[data-mode="kid"] .value-list p,
-html[data-mode="kid"] .lead-box p,
-html[data-mode="kid"] .course-info p.ci-desc{font-size:17px;line-height:2.05}
-html[data-mode="kid"] .qna-q{font-size:19.5px}
-html[data-mode="kid"] .deck-card h4{font-size:26px}
-html[data-mode="kid"] .quiz-q{font-size:25px}
-html[data-mode="kid"] .quiz-opt{font-size:18px;padding:20px 22px}
-html[data-mode="kid"] .quiz-feedback{font-size:17px;line-height:1.95}
-html[data-mode="kid"] .stamp-name{font-size:16px}
-html[data-mode="kid"] .kids-entry{display:none} /* 이미 어린이 모드이므로 안내가 중복된다 */
-
-/* 어른 모드에서는 어린이 진입점이 눈에 띄어야 한다 */
-html[data-mode="adult"] .kids-entry{display:flex}
+.hero-desc{font-size:21px;line-height:1.95}
+.section-head p{font-size:18.5px;line-height:1.95}
+.card p,
+.kids-steps p,
+.qna-a,
+.deck-card p,
+.story-panel p,
+.value-list p,
+.course-info p.ci-desc{font-size:17px;line-height:2.05}
+.qna-q{font-size:19.5px}
+.deck-card h4{font-size:26px}
+.quiz-q{font-size:25px}
+.quiz-opt{font-size:18px;padding:20px 22px}
+.quiz-feedback{font-size:17px;line-height:1.95}
+.stamp-name{font-size:16px}
 
 @media (max-width:880px){
-  html[data-mode="kid"] .hero-desc{font-size:18px}
-  html[data-mode="kid"] .section-head p{font-size:17px}
-  html[data-mode="kid"] .quiz-q{font-size:21px}
+  .hero-desc{font-size:18px}
+  .section-head p{font-size:17px}
+  .quiz-q{font-size:21px}
 }
 
 /* =====================================================================
@@ -1112,7 +1072,7 @@ html[data-mode="adult"] .kids-entry{display:flex}
 }
 .pg-link:hover{transform:translateY(-2px);box-shadow:0 10px 24px rgba(224,184,118,.3)}
 .pg-link:focus-visible{outline:3px solid #e0b876;outline-offset:3px}
-html[data-mode="kid"] .program-card > p{font-size:17px;line-height:2}
+.program-card > p{font-size:17px;line-height:2}
 
 @media (max-width:880px){
   .program-grid{grid-template-columns:1fr}
@@ -1177,8 +1137,8 @@ html[data-mode="kid"] .program-card > p{font-size:17px;line-height:2}
 .cb-msg{margin:10px 0 0;font-size:14px;font-weight:700;color:#e8c98a;min-height:1px}
 .cb-msg.err{color:#ffb3ab}
 .cb-skip{margin:14px 0 0;font-size:13px;line-height:1.7;color:rgba(255,255,255,.62)}
-html[data-mode="kid"] .cb-form label{font-size:17px}
-html[data-mode="kid"] .cb-hint,html[data-mode="kid"] .cb-skip{font-size:14px}
+.cb-form label{font-size:17px}
+.cb-hint,.cb-skip{font-size:14px}
 
 @media (max-width:880px){
   .cb-on{gap:12px;padding:16px}

@@ -1,55 +1,3 @@
-/* =====================================================================
-   글 눈높이 전환 (어린이 / 어른)
-   ---------------------------------------------------------------------
-   HTML 요소에 data-kid="아이용 문구" 를 달아 두면 자동으로 바뀝니다.
-   원문은 처음 한 번 data-adult 에 보관하므로 마크업이 보존됩니다.
-   JS가 그리는 콘텐츠는 onChange 로 다시 그리게 하세요.
-   ===================================================================== */
-window.HansuMode = (function () {
-  const KEY = 'hansu.mode.v1';
-  const listeners = [];
-  let mode = 'kid'; // 이 사이트의 주 대상은 어린이
-  try {
-    const saved = localStorage.getItem(KEY);
-    if (saved === 'kid' || saved === 'adult') mode = saved;
-  } catch (e) {
-    /* 시크릿 모드 등에서 읽기가 막혀도 기본값으로 동작해야 한다 */
-  }
-
-  function apply() {
-    document.documentElement.setAttribute('data-mode', mode);
-    document.querySelectorAll('[data-kid]').forEach((el) => {
-      if (el.dataset.adult === undefined) el.dataset.adult = el.innerHTML.trim();
-      el.innerHTML = mode === 'kid' ? el.dataset.kid : el.dataset.adult;
-    });
-    document.querySelectorAll('.mode-switch button').forEach((b) => {
-      b.setAttribute('aria-pressed', String(b.dataset.mode === mode));
-    });
-    listeners.forEach((fn) => {
-      try {
-        fn(mode);
-      } catch (e) {
-        /* 한 곳이 실패해도 나머지는 계속 반영되어야 한다 */
-      }
-    });
-  }
-
-  return {
-    get: () => mode,
-    isKid: () => mode === 'kid',
-    onChange: (fn) => listeners.push(fn),
-    set: (m) => {
-      if (m !== 'kid' && m !== 'adult') return;
-      mode = m;
-      try {
-        localStorage.setItem(KEY, m);
-      } catch (e) {}
-      apply();
-    },
-    apply,
-  };
-})();
-
 const navToggle = document.querySelector('.nav-toggle');
 const siteNav = document.querySelector('.site-nav');
 
@@ -870,17 +818,17 @@ document.querySelectorAll('.site-nav a').forEach((link) => {
       host.innerHTML =
         // 31.2km 는 탕춘대성까지 합친 코스 전체 길이다. 한양도성 한 바퀴(18.6km)와 다르다.
         `<p class="ci-route">전체 ${(D.courses || []).length}개 구간 · 코스 합계 ${nf(total, 1)}km</p>` +
-        `<div class="ci-meta"><span>스탬프 ${GEO.checkpoints.length}곳</span>` +
+        `<div class="ci-meta"><span>도장 ${GEO.checkpoints.length}곳</span>` +
         `<span>인증 반경 ${GEO.radiusM}m</span></div>` +
-        `<p class="ci-desc">코스를 고르면 그 구간의 스탬프만 보입니다. 순서대로 돌지 않아도 되고, 원하는 구간부터 시작해도 됩니다.</p>`;
+        `<p class="ci-desc">코스를 고르면 그 구간의 도장만 보여요. 순서대로 돌지 않아도 되고, 원하는 구간부터 시작해도 돼요.</p>`;
       return;
     }
     host.innerHTML =
       `<p class="ci-route">${c.from} → ${c.to}</p>` +
       `<div class="ci-meta"><span>${nf(c.distanceKm, 1)}km</span><span>${c.duration}</span>` +
       `<span class="ci-level">난이도 ${c.level}</span>` +
-      `<span>스탬프 ${pointsOf(c.id).length}곳</span></div>` +
-      `<p class="ci-desc">${c.summary} ${isKid() && c.detailKid ? c.detailKid : c.detail}</p>`;
+      `<span>도장 ${pointsOf(c.id).length}곳</span></div>` +
+      `<p class="ci-desc">${c.summary} ${c.detail}</p>`;
   }
 
   function renderStamps(dists) {
@@ -900,7 +848,7 @@ document.querySelectorAll('.site-nav a').forEach((link) => {
           `<span class="stamp-name">${c.name}</span>` +
           `<span class="stamp-course">${course ? course.name : ''}</span>` +
           (d == null ? '' : `<span class="stamp-dist">${fmtDist(d)}</span>`) +
-          `<span class="stamp-lock">${done ? '이야기 열림' : '인증하면 열림'}</span>` +
+          `<span class="stamp-lock">${done ? '이야기 열림' : '도장 찍으면 열림'}</span>` +
           `</button></li>`
         );
       })
@@ -912,10 +860,6 @@ document.querySelectorAll('.site-nav a').forEach((link) => {
       });
     });
   }
-
-  const isKid = () => Boolean(window.HansuMode && window.HansuMode.isKid());
-  // 어린이 눈높이 문구가 있으면 그것을, 없으면 원문을 쓴다
-  const kidText = (cp) => (isKid() && cp.storyKid ? cp.storyKid : cp.story);
 
   // 스탬프를 찍어야 그 자리의 이야기가 열린다 — 인증이 곧 배움의 열쇠
   function renderStory() {
@@ -934,12 +878,9 @@ document.querySelectorAll('.site-nav a').forEach((link) => {
       `<div class="sp-top"><h4>${cp.name}</h4>` +
       `<span class="sp-course">${course ? course.name : ''}</span></div>` +
       (done
-        ? `<p>${kidText(cp)}</p>`
-        : `<p class="sp-locked">${
-            isKid()
-              ? `아직 도장을 찍지 않은 곳이에요. ${cp.name}에 가서 인증하면 이야기가 열려요!`
-              : `아직 인증하지 않은 지점입니다. ${cp.name}에 도착해 ${GEO.radiusM}m 안에서 인증하면 이곳의 이야기가 열립니다.`
-          }</p>`) +
+        ? `<p>${cp.story}</p>`
+        : `<p class="sp-locked">아직 도장을 찍지 않은 곳이에요. ` +
+          `${cp.name}에 가서 인증하면 이야기가 열려요!</p>`) +
       `<button class="sp-close" type="button">닫기</button>`;
     panel.querySelector('.sp-close').addEventListener('click', () => {
       openStory = null;
@@ -953,7 +894,7 @@ document.querySelectorAll('.site-nav a').forEach((link) => {
     const got = earnedCount('all');
     const total = GEO.checkpoints.length;
     n.innerHTML =
-      `스탬프 ${got}/${total} · 이야기 ${got}편 열림` +
+      `도장 ${got}/${total} · 이야기 ${got}편 열림` +
       `<span class="cp-bar"><i style="width:${total ? (got / total) * 100 : 0}%"></i></span>`;
   }
 
@@ -1089,20 +1030,19 @@ document.querySelectorAll('.site-nav a').forEach((link) => {
       host.hidden = true;
       return;
     }
-    const kid = isKid();
     const code = getCode();
     const got = earnedCount('all');
 
     if (code && !codeEditing) {
       host.innerHTML =
         `<div class="cb-on">` +
-        `<div class="cb-info"><span class="cb-label">${kid ? '내 참여 코드' : '참여 코드'}</span>` +
+        `<div class="cb-info"><span class="cb-label">내 참여 코드</span>` +
         `<strong>${codeLabel(code)}</strong>` +
         (codeName ? `<span class="cb-name">${codeName}</span>` : '') +
         `</div>` +
-        `<div class="cb-count">${kid ? '모은 도장' : '모은 스탬프'} <b>${got}</b>` +
+        `<div class="cb-count">모은 도장 <b>${got}</b>` +
         `<span>/ ${GEO.checkpoints.length}</span></div>` +
-        `<button class="cb-change" type="button">${kid ? '코드 바꾸기' : '코드 변경'}</button>` +
+        `<button class="cb-change" type="button">코드 바꾸기</button>` +
         `</div>`;
       host.querySelector('.cb-change').addEventListener('click', () => {
         codeEditing = true;
@@ -1113,7 +1053,7 @@ document.querySelectorAll('.site-nav a').forEach((link) => {
 
     host.innerHTML =
       `<form class="cb-form" novalidate>` +
-      `<label for="codeInput">${kid ? '참여 코드가 있나요?' : '참여 코드를 입력하세요'}</label>` +
+      `<label for="codeInput">참여 코드가 있나요?</label>` +
       `<div class="cb-row">` +
       `<input id="codeInput" name="code" type="text" inputmode="numeric" autocomplete="off" ` +
       `maxlength="${PART.digits || 6}" placeholder="${'0'.repeat(PART.digits || 6)}" value="${code}" />` +
@@ -1122,11 +1062,8 @@ document.querySelectorAll('.site-nav a').forEach((link) => {
       `</div>` +
       `<p class="cb-hint">${PART.hint || ''}</p>` +
       `<p class="cb-msg" role="status" aria-live="polite"></p>` +
-      `<p class="cb-skip">${
-        kid
-          ? '코드가 없어도 도장은 찍을 수 있어요. 다만 지금 쓰는 기기에만 저장돼요.'
-          : '코드 없이도 인증할 수 있습니다. 다만 기록이 이 브라우저에만 남습니다.'
-      }</p>` +
+      `<p class="cb-skip">코드가 없어도 도장은 찍을 수 있어요. ` +
+      `다만 지금 쓰는 기기에만 저장돼요.</p>` +
       `</form>`;
 
     const form = host.querySelector('.cb-form');
@@ -1148,15 +1085,15 @@ document.querySelectorAll('.site-nav a').forEach((link) => {
       const v = input.value.trim();
       const n = PART.digits || 6;
       if (v.length !== n) {
-        msg.textContent = `${n}자리 숫자를 입력해 주세요.`;
+        msg.textContent = `${n}자리 숫자를 넣어 주세요.`;
         msg.className = 'cb-msg err';
         return;
       }
-      msg.textContent = '확인하는 중입니다…';
+      msg.textContent = '확인하는 중이에요…';
       msg.className = 'cb-msg';
       const res = await verifyCode(v);
       if (!res.ok) {
-        msg.textContent = res.message || '등록되지 않은 코드입니다. 받으신 코드를 다시 확인해 주세요.';
+        msg.textContent = res.message || '없는 코드예요. 받은 코드를 다시 한 번 확인해 봐요.';
         msg.className = 'cb-msg err';
         return;
       }
@@ -1181,20 +1118,14 @@ document.querySelectorAll('.site-nav a').forEach((link) => {
   function renderCheckinNote() {
     const note = document.getElementById('checkinNote');
     if (!note || !GEO) return;
-    // 어린이에게는 운영용 안내를 빼되, 도장이 사라질 수 있다는 사실은 그대로 알린다
-    const parts = isKid()
-      ? [
-          `인증 반경 ${GEO.radiusM}m · 도장 ${GEO.checkpoints.length}곳. 도장 카드를 누르면 그 자리의 이야기를 볼 수 있어요.`,
-          '도장은 지금 쓰는 기기에만 저장돼요. 다른 기기에서 열면 처음부터 다시 찍어야 해요.',
-        ]
-      : [
-          `인증 반경 ${GEO.radiusM}m · 스탬프 ${GEO.checkpoints.length}곳. 스탬프 카드를 누르면 그 자리의 이야기를 볼 수 있습니다.`,
-          '스탬프는 <b>이 브라우저에만</b> 저장됩니다. 기기를 바꾸면 사라지고 운영자도 볼 수 없습니다 — 실제 운영하려면 백엔드 연결이 필요합니다.',
-          '좌표는 공개 자료 기준 근사값입니다. 주소 끝에 <code>?geodebug=1</code>을 붙이면 모든 지점까지의 실측 거리가 표시되니, 현장에서 그 값으로 좌표와 반경을 보정하세요.',
-        ];
+    // 도장이 사라질 수 있다는 사실은 아이도 알아야 하므로 어린이 문구로 그대로 알린다
+    const parts = [
+      `인증 반경 ${GEO.radiusM}m · 도장 ${GEO.checkpoints.length}곳. 도장 카드를 누르면 그 자리의 이야기를 볼 수 있어요.`,
+      '도장은 지금 쓰는 기기에만 저장돼요. 다른 기기에서 열면 처음부터 다시 찍어야 해요.',
+    ];
     if (!window.isSecureContext) {
       parts.unshift(
-        '⚠️ 지금은 보안 연결이 아니라 위치 기능이 차단됩니다. <code>localhost</code> 또는 https로 열어주세요.'
+        '⚠️ 지금은 안전한 연결이 아니라 위치를 쓸 수 없어요. https 주소로 열어 주세요.'
       );
     }
     note.innerHTML = parts.join('<br>');
@@ -1217,15 +1148,15 @@ document.querySelectorAll('.site-nav a').forEach((link) => {
     if (!btn) return;
     btn.addEventListener('click', () => {
       if (!navigator.geolocation) {
-        setStatus('이 브라우저는 위치 기능을 지원하지 않습니다.', 'err');
+        setStatus('이 브라우저에서는 위치를 쓸 수 없어요.', 'err');
         return;
       }
       if (!window.isSecureContext) {
-        setStatus('보안 연결(https 또는 localhost)에서만 위치를 읽을 수 있습니다.', 'err');
+        setStatus('안전한 연결(https)에서만 위치를 쓸 수 있어요.', 'err');
         return;
       }
       btn.disabled = true;
-      setStatus('위치를 확인하는 중입니다…');
+      setStatus('어디에 있는지 확인하는 중이에요…');
       navigator.geolocation.getCurrentPosition(
         (pos) => {
           btn.disabled = false;
@@ -1260,15 +1191,15 @@ document.querySelectorAll('.site-nav a').forEach((link) => {
             const total = earnedCount('all');
             setStatus(
               already
-                ? `${nearest.c.name} 재인증 완료 (${fmtDist(nearest.m)}). 스탬프 ${total}/${GEO.checkpoints.length}`
-                : `${nearest.c.name} 인증 완료! 이야기가 열렸습니다. 스탬프 ${total}/${GEO.checkpoints.length}`,
+                ? `${nearest.c.name} 도장을 다시 찍었어요 (${fmtDist(nearest.m)}). 도장 ${total}/${GEO.checkpoints.length}`
+                : `${nearest.c.name} 도장을 찍었어요! 이야기가 열렸어요. 도장 ${total}/${GEO.checkpoints.length}`,
               'ok'
             );
           } else {
             refreshCheckin(geoDebug ? dists : { [nearest.c.id]: nearest.m });
             setStatus(
-              `가장 가까운 곳은 ${nearest.c.name}이고 ${fmtDist(nearest.m)} 떨어져 있습니다. ` +
-                `${GEO.radiusM}m 안으로 들어가면 인증됩니다. (위치 오차 약 ${Math.round(acc)}m)`,
+              `여기서 가장 가까운 곳은 ${nearest.c.name}이고 ${fmtDist(nearest.m)} 떨어져 있어요. ` +
+                `${GEO.radiusM}m 안까지 가면 도장을 찍을 수 있어요. (위치 오차 약 ${Math.round(acc)}m)`,
               'warn'
             );
           }
@@ -1277,10 +1208,10 @@ document.querySelectorAll('.site-nav a').forEach((link) => {
           btn.disabled = false;
           const msg =
             err.code === 1
-              ? '위치 권한이 거부되었습니다. 브라우저 설정에서 이 사이트의 위치 권한을 허용해 주세요.'
+              ? '위치를 쓸 수 없게 막혀 있어요. 브라우저 설정에서 위치 사용을 허락해 주세요.'
               : err.code === 2
-              ? '위치를 가져오지 못했습니다. 실내나 지하에서는 실패할 수 있습니다.'
-              : '위치 확인이 시간 초과되었습니다. 하늘이 보이는 곳에서 다시 시도해 주세요.';
+              ? '위치를 찾지 못했어요. 건물 안이나 지하에서는 잘 안 될 수 있어요.'
+              : '위치를 찾는 데 너무 오래 걸렸어요. 하늘이 보이는 곳에서 다시 해 봐요.';
           setStatus(msg, 'err');
         },
         { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
@@ -1304,9 +1235,6 @@ document.querySelectorAll('.site-nav a').forEach((link) => {
   buildMeta();
   buildChart();
   buildCheckin();
-
-  // 눈높이를 바꾸면 이야기 문구도 함께 갈아 끼운다
-  if (window.HansuMode) window.HansuMode.onChange(() => { refreshCheckin(); renderCheckinNote(); });
 
   /* 서버에서 실데이터를 받으면 이 함수로 전체를 다시 그린다 */
   window.HansuRecord = {
@@ -1451,7 +1379,6 @@ document.querySelectorAll('.site-nav a').forEach((link) => {
     `<svg class="deck-glyph" viewBox="0 0 64 64" aria-hidden="true">${GLYPHS[kind] || GLYPHS.wall}</svg>`;
 
   /* --- 이야기 카드 덱 --- */
-  const kid = () => Boolean(window.HansuMode && window.HansuMode.isKid());
   const cards = D.storyCards || [];
   const cardEl = document.getElementById('deckCard');
   if (cardEl && cards.length) {
@@ -1463,7 +1390,7 @@ document.querySelectorAll('.site-nav a').forEach((link) => {
       cardEl.innerHTML =
         `<div class="deck-no" aria-hidden="true">${c.no}</div>` +
         glyphSvg(c.glyph) +
-        `<h4>${c.title}</h4><p>${kid() && c.bodyKid ? c.bodyKid : c.body}</p>` +
+        `<h4>${c.title}</h4><p>${c.body}</p>` +
         (c.tip ? `<p class="deck-tip">${c.tip}</p>` : '') +
         `<p class="deck-count">${idx + 1} / ${cards.length}</p>`;
       if (dots) {
@@ -1502,7 +1429,6 @@ document.querySelectorAll('.site-nav a').forEach((link) => {
       });
     }
     render();
-    if (window.HansuMode) window.HansuMode.onChange(render);
   }
 
   /* --- 아이들이 그린 성곽 --- */
@@ -1689,10 +1615,10 @@ document.querySelectorAll('.site-nav a').forEach((link) => {
       pct === 1 ? '성곽 박사님이네요!' : pct >= 0.6 ? '잘 기억하고 있어요!' : '다시 한 번 걸어 볼까요?';
     const msg =
       pct === 1
-        ? '여섯 문제를 모두 맞혔어요. 이제 직접 성곽길을 걸으며 스탬프를 모아 보세요.'
+        ? '문제를 모두 맞혔어요. 이제 직접 성곽길을 걸으며 도장을 모아 봐요.'
         : pct >= 0.6
         ? '대부분 잘 기억하고 있어요. 위의 이야기 카드를 한 번 더 넘겨 보면 나머지도 금방 채워집니다.'
-        : '괜찮아요. 이야기 카드와 스탬프 이야기를 다시 보고 오면 훨씬 쉬워져요.';
+        : '괜찮아요. 이야기 카드와 도장 이야기를 다시 보고 오면 훨씬 쉬워져요.';
     resultEl.hidden = false;
     resultEl.innerHTML =
       `<p class="qr-score">${score}<em>/${Q.length}</em></p>` +
@@ -1772,12 +1698,4 @@ document.querySelectorAll('.site-nav a').forEach((link) => {
   window.addEventListener('scroll', update, { passive: true });
   window.addEventListener('resize', update, { passive: true });
   update();
-})();
-
-/* 눈높이 전환 버튼 배선 — 모든 렌더링이 끝난 뒤 한 번 적용 */
-(function () {
-  document.querySelectorAll('.mode-switch button').forEach((b) => {
-    b.addEventListener('click', () => window.HansuMode.set(b.dataset.mode));
-  });
-  window.HansuMode.apply();
 })();
