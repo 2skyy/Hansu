@@ -1578,7 +1578,26 @@ document.querySelectorAll('.site-nav a').forEach((link) => {
     }
     return a;
   }
-  let Q = shuffled(D.quiz);
+  /* 문제집을 새로 만든다.
+     - 30문제 중 count 개만 뽑는다 (count 가 0 이면 전부)
+     - 보기 순서도 섞고, 정답 위치를 함께 옮긴다
+       (원본은 정답이 첫 보기에 몰려 있어 섞지 않으면 찍기 쉽다) */
+  function prepare(pool, count) {
+    const picked = count ? shuffled(pool).slice(0, count) : shuffled(pool);
+    return picked.map((item) => {
+      const order = shuffled(item.options.map((_, i) => i));
+      return {
+        q: item.q,
+        why: item.why,
+        options: order.map((i) => item.options[i]),
+        answer: order.indexOf(item.answer),
+      };
+    });
+  }
+
+  const PICK = D.quizPick || 6;
+  let allMode = false; // 모든 문제 풀어보기
+  let Q = prepare(D.quiz, PICK);
 
   const card = document.getElementById('quizCard');
   const stepEl = document.getElementById('quizStep');
@@ -1597,6 +1616,14 @@ document.querySelectorAll('.site-nav a').forEach((link) => {
 
   function renderDots() {
     if (!dotsEl) return;
+    // 문항이 많으면 점을 다 찍을 수 없으니 막대로 바꾼다
+    if (Q.length > 12) {
+      const done = marks.filter((m) => m !== undefined).length;
+      dotsEl.className = 'quiz-dots as-bar';
+      dotsEl.innerHTML = `<i style="width:${((done / Q.length) * 100).toFixed(1)}%"></i>`;
+      return;
+    }
+    dotsEl.className = 'quiz-dots';
     dotsEl.innerHTML = Q.map((_, i) => {
       const c = marks[i] === true ? 'ok' : marks[i] === false ? 'no' : i === idx ? 'on' : '';
       return `<i class="${c}"></i>`;
@@ -1670,9 +1697,15 @@ document.querySelectorAll('.site-nav a').forEach((link) => {
     resultEl.innerHTML =
       `<p class="qr-score">${score}<em>/${Q.length}</em></p>` +
       `<h3>${title}</h3><p>${msg}</p>` +
-      `<button class="quiz-retry" type="button">다시 풀기</button>`;
-    resultEl.querySelector('.quiz-retry').addEventListener('click', () => {
-      Q = shuffled(D.quiz); // 다시 풀 때도 새로 섞는다
+      `<div class="qr-actions">` +
+      `<button class="quiz-retry" type="button">다시 풀기</button>` +
+      (allMode
+        ? `<button class="quiz-all" type="button" data-to="few">${PICK}문제만 풀기</button>`
+        : `<button class="quiz-all" type="button" data-to="all">모든 문제 풀어보기 (${D.quiz.length}문제)</button>`) +
+      `</div>`;
+
+    const restart = () => {
+      Q = prepare(D.quiz, allMode ? 0 : PICK); // 다시 풀 때도 새로 뽑고 새로 섞는다
       idx = 0;
       score = 0;
       marks = [];
@@ -1680,6 +1713,11 @@ document.querySelectorAll('.site-nav a').forEach((link) => {
       card.hidden = false;
       renderQuestion();
       card.scrollIntoView({ block: 'center', behavior: 'smooth' });
+    };
+    resultEl.querySelector('.quiz-retry').addEventListener('click', restart);
+    resultEl.querySelector('.quiz-all').addEventListener('click', (e) => {
+      allMode = e.currentTarget.dataset.to === 'all';
+      restart();
     });
   }
 

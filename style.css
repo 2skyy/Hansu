@@ -1188,3 +1188,19 @@ html[data-mode="kid"] .cb-hint,html[data-mode="kid"] .cb-skip{font-size:14px}
   .cb-form input{flex:1 1 100%}
   .cb-form button[type="submit"],.cb-cancel{flex:1 1 auto}
 }
+/* 문항이 많을 때는 점 대신 막대로 진행을 보여준다 */
+.quiz-dots.as-bar{
+  display:block;width:120px;height:7px;border-radius:999px;
+  background:var(--line);overflow:hidden
+}
+.quiz-dots.as-bar i{display:block;height:100%;border-radius:999px;background:var(--jucheol);transition:width .3s ease}
+.qr-actions{display:flex;flex-wrap:wrap;gap:10px;justify-content:center}
+.quiz-all{
+  min-height:46px;padding:0 22px;border-radius:6px;cursor:pointer;
+  font-family:inherit;font-size:15px;font-weight:800;
+  color:var(--jucheol);background:var(--hanji-card);border:1px solid var(--jucheol);
+  transition:.18s ease
+}
+.quiz-all:hover{background:rgba(168,56,46,.08)}
+.quiz-all:focus-visible{outline:3px solid var(--jucheol);outline-offset:3px}
+@media (max-width:880px){.qr-actions{flex-direction:column}.quiz-all{width:100%}}
