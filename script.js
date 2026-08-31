@@ -1565,7 +1565,20 @@ document.querySelectorAll('.site-nav a').forEach((link) => {
   const D = window.HANSU_DATA;
   const sec = document.getElementById('quiz');
   if (!D || !D.quiz || !D.quiz.length || !sec) return;
-  const Q = D.quiz;
+  // 문항 순서는 사람마다, 그리고 다시 풀 때마다 섞는다.
+  // 같은 순서를 외워서 푸는 걸 막고, 여럿이 함께 풀 때 서로 답을 보고
+  // 따라 적기 어렵게 하기 위해서다.
+  function shuffled(arr) {
+    const a = arr.slice();
+    for (let i = a.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      const t = a[i];
+      a[i] = a[j];
+      a[j] = t;
+    }
+    return a;
+  }
+  let Q = shuffled(D.quiz);
 
   const card = document.getElementById('quizCard');
   const stepEl = document.getElementById('quizStep');
@@ -1659,6 +1672,7 @@ document.querySelectorAll('.site-nav a').forEach((link) => {
       `<h3>${title}</h3><p>${msg}</p>` +
       `<button class="quiz-retry" type="button">다시 풀기</button>`;
     resultEl.querySelector('.quiz-retry').addEventListener('click', () => {
+      Q = shuffled(D.quiz); // 다시 풀 때도 새로 섞는다
       idx = 0;
       score = 0;
       marks = [];
