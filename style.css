@@ -650,7 +650,6 @@ h1 span{background:none;-webkit-background-clip:initial;background-clip:initial;
 
 /* --- 푸터 --- */
 .site-footer{background:var(--hanji-card);border-top:1px solid var(--line)}
-.footer-inner a{color:var(--jucheol)}
 /* 지도 위 글자도 명조로 — 옛 지도의 붓글씨 인상에 가깝다 */
 .hs-cartouche-text,.hs-peak-label,.hs-water-label{font-family:var(--serif)}
 .hs-wall-label .wl-name{font-family:var(--serif)}
