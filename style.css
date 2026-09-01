@@ -1164,3 +1164,39 @@ h1 span{background:none;-webkit-background-clip:initial;background-clip:initial;
 .quiz-all:hover{background:rgba(168,56,46,.08)}
 .quiz-all:focus-visible{outline:3px solid var(--jucheol);outline-offset:3px}
 @media (max-width:880px){.qr-actions{flex-direction:column}.quiz-all{width:100%}}
+
+/* =====================================================================
+   히어로 — 누적 거리를 주인공으로
+   기록이 먼저 읽히도록 자리를 바꾸고 숫자를 크게 키웠습니다.
+   ===================================================================== */
+.hero-grid{grid-template-columns:1.04fr .96fr;gap:56px}
+.hero-visual{position:relative;min-height:0;display:flex;align-items:center}
+.summary-card{
+  position:static;inset:auto;width:100%;
+  padding:44px 42px 40px;border-radius:24px;
+  background:var(--hanji-card);border:1px solid var(--line);
+  box-shadow:0 26px 70px rgba(60,44,24,.14)
+}
+.card-topline{font-size:14px;letter-spacing:.02em}
+.summary-card h2{
+  margin:10px 0 14px;font-size:clamp(60px,8.4vw,108px);line-height:.98;
+  letter-spacing:-.055em;font-weight:800
+}
+.summary-card h2 em{font-style:normal;font-size:.3em;font-weight:800;margin-left:8px;color:var(--muted)}
+.summary-card p{font-size:16px;line-height:1.75}
+.summary-card .mini-grid{margin-top:26px}
+
+/* 제목은 기록에 자리를 내주고 한 단계 물러선다 */
+h1{font-size:clamp(32px,4.2vw,52px);line-height:1.16}
+.hero-desc{font-size:18px;line-height:1.9;margin-top:22px}
+.hero-actions{margin-top:28px}
+
+@media (max-width:880px){
+  /* 이 규칙이 파일 뒤쪽에 있어 앞선 미디어쿼리의 1단 설정을 덮어쓴다.
+     같은 특정도면 나중 규칙이 이기므로 여기서 다시 명시한다. */
+  .hero-grid{grid-template-columns:1fr;gap:32px}
+  .hero-visual{margin-top:0}
+  .summary-card{padding:30px 24px 26px}
+  .summary-card h2{font-size:clamp(52px,15vw,76px)}
+  .hero-desc{font-size:17px}
+}
