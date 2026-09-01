@@ -1169,7 +1169,7 @@ h1 span{background:none;-webkit-background-clip:initial;background-clip:initial;
    히어로 — 누적 거리를 주인공으로
    기록이 먼저 읽히도록 자리를 바꾸고 숫자를 크게 키웠습니다.
    ===================================================================== */
-.hero-grid{grid-template-columns:1.04fr .96fr;gap:56px}
+.hero-grid{grid-template-columns:1.2fr .8fr;gap:52px;align-items:center}
 .hero-visual{position:relative;min-height:0;display:flex;align-items:center}
 .summary-card{
   position:static;inset:auto;width:100%;
@@ -1200,3 +1200,40 @@ h1{font-size:clamp(32px,4.2vw,52px);line-height:1.16}
   .summary-card h2{font-size:clamp(52px,15vw,76px)}
   .hero-desc{font-size:17px}
 }
+
+/* =====================================================================
+   성곽길 주변 둘러보기 (#around)
+   ===================================================================== */
+.around-sec{background:linear-gradient(180deg,var(--hanji) 0%,#f7f1e2 50%,var(--hanji) 100%)}
+.around-grid{list-style:none;padding:0;margin:0;display:grid;gap:20px;grid-template-columns:repeat(3,1fr)}
+.around-card{
+  display:flex;flex-direction:column;padding:28px 26px 24px;border-radius:var(--radius);
+  background:var(--hanji-card);border:1px solid var(--line);box-shadow:0 12px 34px rgba(60,44,24,.07)
+}
+.ar-course{margin:0;font-family:var(--serif);font-size:21px;font-weight:700;color:var(--ink)}
+.ar-route{margin:6px 0 18px;font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums}
+.ar-spots{list-style:none;padding:0;margin:0 0 20px;display:grid;gap:8px;flex:1 1 auto}
+.ar-spot{
+  display:block;padding:13px 15px;border-radius:12px;
+  background:var(--hanji);border:1px solid var(--line);transition:.18s ease
+}
+.ar-spot b{
+  display:block;font-size:15.5px;font-weight:800;color:var(--ink);margin-bottom:3px
+}
+.ar-spot b::after{content:' ↗';font-size:12px;color:var(--jucheol);font-weight:700}
+.ar-spot span{display:block;font-size:13.5px;line-height:1.7;color:var(--muted)}
+.ar-spot:hover{border-color:var(--jucheol);background:#fbf5e8;transform:translateY(-2px)}
+.ar-spot:focus-visible{outline:3px solid var(--jucheol);outline-offset:2px}
+.ar-search{display:flex;flex-wrap:wrap;gap:8px}
+.ar-search a{
+  flex:1 1 auto;text-align:center;padding:11px 12px;border-radius:8px;
+  font-size:13.5px;font-weight:800;letter-spacing:-.02em;
+  color:var(--jucheol);background:rgba(168,56,46,.07);border:1px solid rgba(168,56,46,.28);
+  transition:.18s ease
+}
+.ar-search a:hover{background:var(--jucheol);color:var(--hanji-card);border-color:var(--jucheol)}
+.ar-search a:focus-visible{outline:3px solid var(--jucheol);outline-offset:2px}
+.around-note{margin:26px 0 0;text-align:center;font-size:13px;line-height:1.9;color:#8a7a63}
+
+@media (max-width:1180px){.around-grid{grid-template-columns:repeat(2,1fr)}}
+@media (max-width:680px){.around-grid{grid-template-columns:1fr}}

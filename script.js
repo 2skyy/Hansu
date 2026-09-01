@@ -1699,3 +1699,52 @@ document.querySelectorAll('.site-nav a').forEach((link) => {
   window.addEventListener('resize', update, { passive: true });
   update();
 })();
+
+/* =====================================================================
+   성곽길 주변 둘러보기 (#around)
+   ---------------------------------------------------------------------
+   볼거리는 공식 순성길 자료에 적힌 곳만 링크합니다.
+   카페·음식점은 특정 가게를 추천하지 않고 네이버 지도 검색으로 넘깁니다.
+   가게는 문을 닫거나 바뀌기 때문에 이름을 박아 두면 안 됩니다.
+   ===================================================================== */
+(function () {
+  const D = window.HANSU_DATA;
+  const grid = document.getElementById('aroundGrid');
+  if (!D || !D.around || !grid) return;
+
+  // 네이버 지도 검색 주소. 앱이 깔린 휴대폰에서는 앱으로 이어집니다.
+  const naver = (q) => `https://map.naver.com/p/search/${encodeURIComponent(q)}`;
+  const courseById = Object.fromEntries((D.courses || []).map((c) => [c.id, c]));
+
+  grid.innerHTML = D.around
+    .map((a) => {
+      const c = courseById[a.course];
+      if (!c) return '';
+      const spots = a.spots
+        .map(
+          (s) =>
+            `<li><a class="ar-spot" href="${naver(s.name)}" target="_blank" rel="noopener">` +
+            `<b>${s.name}</b><span>${s.desc}</span></a></li>`
+        )
+        .join('');
+      return (
+        `<li class="around-card">` +
+        `<p class="ar-course">${c.name}</p>` +
+        `<p class="ar-route">${c.from} → ${c.to} · ${c.distanceKm.toFixed(1)}km</p>` +
+        `<ul class="ar-spots">${spots}</ul>` +
+        `<div class="ar-search">` +
+        `<a href="${naver(a.searchBase + ' 카페')}" target="_blank" rel="noopener">근처 카페 찾기</a>` +
+        `<a href="${naver(a.searchBase + ' 음식점')}" target="_blank" rel="noopener">근처 음식점 찾기</a>` +
+        `</div></li>`
+      );
+    })
+    .join('');
+
+  const note = document.getElementById('aroundNote');
+  if (note) {
+    note.innerHTML =
+      '※ 볼거리는 서울 한양도성 공식 순성안내에 적힌 곳이에요. 누르면 네이버 지도가 열려요.<br>' +
+      '※ 카페와 음식점은 특정 가게를 추천하지 않고 네이버 지도 검색으로 이어져요. ' +
+      '가게는 문을 닫거나 바뀔 수 있으니 가기 전에 영업시간을 확인해 주세요.';
+  }
+})();
